@@ -6,19 +6,23 @@
 
 (def *port* 3333)
 
+;;; TODO: could the binding form get pushed up into create-server?
 (defn- mire-loop [ins outs]
   (binding [*in* (LineNumberingPushbackReader. (InputStreamReader. ins))
             *out* (OutputStreamWriter. outs)
             *err* (PrintWriter. #^OutputStream outs true)]
-    (init-player)
-    (try
-     (loop [input (read-line)]
-       (when input
-         (println (execute input))
-         (print prompt) (flush)
-         (recur (read-line))))
-     (finally
-      (cleanup-player)))))
+    (binding [*name* (read-name)
+              *inventory* (ref [])
+              *current-room* (ref (@mire.rooms/*rooms* :start))]
+      (welcome-player)
+      (try
+       (loop [input (read-line)]
+         (when input
+           (println (execute input))
+           (print prompt) (flush)
+           (recur (read-line))))
+       (finally
+        (cleanup-player))))))
 
 (try
  (def *server* (create-server *port* mire-loop))
