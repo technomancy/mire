@@ -2,9 +2,9 @@
 
 (def *rooms* (ref {}))
 
-(defn room-contains? [room thing-name]
+(defn room-contains? [room thing]
   (not (empty?
-        (filter #(= % (keyword thing-name))
+        (filter #(= % (keyword thing))
                 @(room :items)))))
 
 (defn make-room

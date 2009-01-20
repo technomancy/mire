@@ -1,13 +1,26 @@
 (ns mire.player
-  (:use [mire rooms]))
+  (:use [mire items rooms])
+  (:use [clojure.contrib seq-utils str-utils]))
 
-(def *current-room* (ref (@mire.rooms/*rooms* :start)))
-(def *inventory* (ref []))
+(def prompt "> ")
+(def *current-room*)
+(def *inventory*)
+
+(defn look-exits [room]
+  ;; TODO: need to un-intern the exit names here
+  (str "There are exits to the " (keys @(:exits @*current-room*)) "\n"))
+
+(defn look-items [room]
+  (str-join "\n" (map #(str "There is " % " here.") @(:items room))))
+
+(defn look-inhabitants [room] "")
 
 (defn look []
-  (str (:desc @*current-room*) "\n"
-       ;; TODO: show items
-       "There are exits to the " (keys @(:exits @*current-room*))))
+  (let [room @*current-room*]
+    (str (:desc room) "\n"
+         (look-exits room)
+         (look-items room)
+         (look-inhabitants room))))
 
 (defn move [direction]
   (let [target (direction @(:exits @*current-room*))]
@@ -16,15 +29,33 @@
               (look))
       "You can't go that way.")))
 
+(defn inventory-contains? [thing]
+  (not (empty?
+        (filter #(= % (keyword thing))
+                @*inventory*))))
+
 (defn take-thing [thing]
   (dosync
    (if (room-contains? @*current-room* thing)
      (do (commute *inventory* conj (keyword thing))
          (alter (:items @*current-room*)
-                (partial remove #(= % (keyword thing)))))
-     (str "There isn't any " thing " here"))))
+                (partial remove #(= % (keyword thing))))
+         (str "You picked up the " thing "."))
+     (str "There isn't any " thing " here."))))
 
-(defn drop-thing [thing])
+(defn drop-thing [thing]
+  (dosync
+   (if (inventory-contains? thing)
+     (do (commute (:items @*current-room*) conj (keyword thing))
+         (alter *inventory*
+                (partial remove #(= % (keyword thing))))
+         (str "You dropped up the " thing "."))
+     (str "You don't have a " thing "."))))
 
 (defn inventory []
-  (map #(:desc (mire.items/*items* %)) @*inventory*))
+  (str-join "\n" (map #(:desc (mire.items/*items* %)) @*inventory*)))
+
+(defn init-game []
+  (print prompt) (flush)
+  (def *current-room* (ref (@mire.rooms/*rooms* :start)))
+  (def *inventory* (ref [])))
