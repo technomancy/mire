@@ -3,17 +3,23 @@
   (:use [clojure.contrib seq-utils str-utils]))
 
 (def prompt "> ")
+
 (def *current-room*)
 (def *inventory*)
+(def *name*)
 
 (defn look-exits [room]
   ;; TODO: need to un-intern the exit names here
-  (str "There are exits to the " (keys @(:exits @*current-room*)) "\n"))
+  (str "There are exits to the "
+       (str-join " and " (map name (keys @(:exits @*current-room*))))
+       ".\n"))
 
 (defn look-items [room]
-  (str-join "\n" (map #(str "There is " % " here.") @(:items room))))
+  (str-join "\n" (map #(str "There is " (name %) " here.") @(:items room))))
 
-(defn look-inhabitants [room] "")
+(defn look-inhabitants [room]
+  (str-join "\n" (map #(if (not (= % *name*)) (str % " is here."))
+                      @(:inhabitants room))))
 
 (defn look []
   (let [room @*current-room*]
@@ -23,10 +29,15 @@
          (look-inhabitants room))))
 
 (defn move [direction]
-  (let [target (direction @(:exits @*current-room*))]
-    (if target
-      (dosync (ref-set *current-room* (target @mire.rooms/*rooms*))
-              (look))
+  (let [target-name (@(:exits @*current-room*) direction)
+        target (@*rooms* target-name)]
+    (if target-name
+      (dosync
+       (commute (:inhabitants target) conj *name*)
+       (alter (:inhabitants @*current-room*)
+              (partial remove #(= % *name*)))
+       (ref-set *current-room* target)
+       (look))
       "You can't go that way.")))
 
 (defn inventory-contains? [thing]
@@ -55,7 +66,20 @@
 (defn inventory []
   (str-join "\n" (map #(:desc (mire.items/*items* %)) @*inventory*)))
 
-(defn init-game []
-  (print prompt) (flush)
+(defn init-player []
   (def *current-room* (ref (@mire.rooms/*rooms* :start)))
-  (def *inventory* (ref [])))
+  (def *inventory* (ref []))
+  (print "\nWhat is your name? ") (flush)
+  ;; TODO: ensure name is unique
+  (def *name* (read-line))
+  (println "Welcome to Mire, " *name* "\n")
+  (println (look))
+  (print prompt) (flush))
+
+(defn cleanup-player
+  "Drop a player's inventory and purge him from his room's inhabitants list."
+  []
+  (dosync
+   (doall (map #(drop-thing (name %)) @*inventory*))
+   (alter (:inhabitants @*current-room*)
+          (partial remove #(= % *name*)))))

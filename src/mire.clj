@@ -10,10 +10,18 @@
   (binding [*in* (LineNumberingPushbackReader. (InputStreamReader. ins))
             *out* (OutputStreamWriter. outs)
             *err* (PrintWriter. #^OutputStream outs true)]
-    (init-game)
-    (loop [input (read-line)]
-      (println (execute input))
-      (print prompt) (flush)
-      (recur (read-line)))))
+    (init-player)
+    (try
+     (loop [input (read-line)]
+       (when input
+         (println (execute input))
+         (print prompt) (flush)
+         (recur (read-line))))
+     (finally
+      (cleanup-player)))))
 
-(create-server *port* mire-loop)
+(try
+ (def *server* (create-server *port* mire-loop))
+ (catch java.net.BindException _
+   (close-server *server*)
+   (def *server* (create-server *port* mire-loop))))
