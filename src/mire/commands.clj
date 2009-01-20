@@ -14,6 +14,11 @@
 
                ;; String values are aliases.
                "get" "take"
+               "discard" "drop"
+
+               ;; for debugging
+               "who" (fn [&rest args] *name*)
+
                "n" "north"
                "s" "south"
                "e" "east"
@@ -31,12 +36,13 @@
   (re-split #"\s+" input))
 
 (defn execute [input]
-  ;; destructure into words split by space using re-matches
+  ;; TODO: destructure into words split by space using re-matches
   (let [input-list (parse-input input)
         command (commands (first input-list))
         args (rest input-list)]
     (if command
       (if (string? command)
-        (apply (commands command) args)
+        (apply (commands command) args) ; look up aliased command
         (apply command args))
+      ;; should be some kind of "pick-rand" function for this, no?
       (unknown-responses (rand-int (count unknown-responses))))))

@@ -2,6 +2,8 @@
   (:use [mire items rooms])
   (:use [clojure.contrib seq-utils str-utils]))
 
+;;; TODO: players could be a map that contains player-specific info?
+(def *players* (ref #{}))
 (def prompt "> ")
 
 (def *current-room*)
@@ -9,13 +11,12 @@
 (def *name*)
 
 (defn look-exits [room]
-  ;; TODO: need to un-intern the exit names here
   (str "There are exits to the "
        (str-join " and " (map name (keys @(:exits @*current-room*))))
        ".\n"))
 
 (defn look-items [room]
-  (str-join "\n" (map #(str "There is " (name %) " here.") @(:items room))))
+  (str-join "\n" (map #(str "There is " (name %) " here.\n") @(:items room))))
 
 (defn look-inhabitants [room]
   (str-join "\n" (map #(if (not (= % *name*)) (str % " is here."))
@@ -66,12 +67,17 @@
 (defn inventory []
   (str-join "\n" (map #(:desc (mire.items/*items* %)) @*inventory*)))
 
-(defn init-player []
-  (def *current-room* (ref (@mire.rooms/*rooms* :start)))
-  (def *inventory* (ref []))
+(defn read-name []
   (print "\nWhat is your name? ") (flush)
-  ;; TODO: ensure name is unique
-  (def *name* (read-line))
+  (loop [name (read-line)]
+    (if (not (@*players* name))
+      name
+      (do (print "\nThat name is taken; please choose another: ")
+          (flush)
+          (recur (read-line))))))
+
+(defn welcome-player []
+  (dosync (commute *players* conj *name*))
   (println "Welcome to Mire, " *name* "\n")
   (println (look))
   (print prompt) (flush))
@@ -80,6 +86,7 @@
   "Drop a player's inventory and purge him from his room's inhabitants list."
   []
   (dosync
-   (doall (map #(drop-thing (name %)) @*inventory*))
+   (doseq [thing @*inventory*]
+     (drop-thing thing))
    (alter (:inhabitants @*current-room*)
           (partial remove #(= % *name*)))))
