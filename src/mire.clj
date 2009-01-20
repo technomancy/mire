@@ -1,36 +1,19 @@
 (ns mire
-  (:require [mire commands])
-  (:use [mire player rooms items])
-  (:use [clojure.contrib duck-streams]))
+  (:use [mire commands player rooms items])
+  (:use [clojure.contrib duck-streams server-socket])
+  (:import [java.io InputStreamReader OutputStream OutputStreamWriter PrintWriter]
+           [clojure.lang LineNumberingPushbackReader]))
 
-(def port 3333)
+(def *port* 3333)
 
-(defn repl [in out]
-  (binding [*out* (java.io.OutputStreamWriter. out)
-            *in* (reader in)]
+(defn- mire-loop [ins outs]
+  (binding [*in* (LineNumberingPushbackReader. (InputStreamReader. ins))
+            *out* (OutputStreamWriter. outs)
+            *err* (PrintWriter. #^OutputStream outs true)]
     (init-game)
-    (try (io! (loop [input (read-line)]
-                (println (mire.commands/execute input))
-                (print prompt) (flush)
-                (recur (read-line))))
-         (catch Exception e (prn e)))))
+    (loop [input (read-line)]
+      (println (execute input))
+      (print prompt) (flush)
+      (recur (read-line)))))
 
-;; TODO: Update this to use server-sockets in clojure.contrib
-
-(defn create-server
-  "creates and returns a server socket on port, will pass the client
-  socket to accepter on connection"
-  [accepter port]
-  (let [ss (java.net.ServerSocket. port)]
-    (.start (Thread. #(accepter (.accept ss))))
-    ss))
-
-;; restart if applicable
-(if (and (find-var 'mire/server)
-         (not (.isClosed mire/server)))
-  (.close mire/server))
-
-(def server (create-server
-             (fn [socket] (.start (Thread.
-                                  #(repl (.getInputStream socket)
-                                         (.getOutputStream socket))))) port))
+(create-server *port* mire-loop)
