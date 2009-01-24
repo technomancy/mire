@@ -6,9 +6,7 @@
 (def *players* (ref #{}))
 (def prompt "> ")
 
-(def *current-room*)
-(def *inventory*)
-(def *name*)
+(declare *current-room* *inventory* *name*)
 
 (defn look-exits [room]
   (str "There are exits to the "

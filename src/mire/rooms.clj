@@ -20,6 +20,8 @@
   ([name desc exits]
      (make-room name desc exits [])))
 
+;; TODO: load room (and maybe item) data from files.
+
 (make-room :start
            "You find yourself in a round room with a pillar in the middle."
            {:north :closet

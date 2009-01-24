@@ -10,9 +10,10 @@
         (lazy-cons (first coll) (remove pred (rest coll))))))
 
 (defn move-between-refs [obj from to]
-  "Move one instance of obj between ref1 and ref2"
+  "Move one instance of obj between ref1 and ref2. Must be called in a transaction."
   (commute from (partial remove-first #(= % obj)))
   (commute to conj obj))
 
-(defn pick-rand [coll]
-  (coll (rand-int (count coll))))
+(defn pick-rand [vect]
+  "Return a random element of vect."
+  (vect (rand-int (count vect))))
