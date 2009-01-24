@@ -3,8 +3,13 @@
 
 (def *rooms* (ref {}))
 
+;; A single item can be instantiated many places. This map simply
+;; provides the descriptions and other properties for items.
+(def *items* {:keys {:desc "some keys"}
+              :bunny {:desc "a bunny"}})
+
 (defn room-contains? [room thing]
-  (includes? @(room :items) thing))
+  (includes? @(room :items) (keyword thing)))
 
 (defn make-room
   ([name desc exits items]
