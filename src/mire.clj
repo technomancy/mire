@@ -1,3 +1,5 @@
+#!/usr/bin/env clj
+
 (ns mire
   (:use [mire commands player rooms items])
   (:use [clojure.contrib duck-streams server-socket])
@@ -27,5 +29,5 @@
 (try
  (def *server* (create-server *port* mire-loop))
  (catch java.net.BindException _
-   (close-server *server*)
+   (close-server *server*) ;; TODO: do this only if *server* is bound
    (def *server* (create-server *port* mire-loop))))
