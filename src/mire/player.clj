@@ -42,9 +42,13 @@
       "You can't go that way.")))
 
 (defn inventory-contains? [thing]
-  (not (empty?
-        (filter #(= % (keyword thing))
-                @*inventory*))))
+  (includes? @*inventory* (keyword thing)))
+
+;; TODO: move, take-thing, and drop-thing all involve moving an
+;; element from one seq to another. This should be abstracted.
+
+;; TODO: if multiple instances of an item can exist in inventory or in
+;; a room, we can't use remove here, we'd need something like remove-first.
 
 (defn take-thing [thing]
   (dosync
@@ -85,8 +89,6 @@
 (defn cleanup-player
   "Drop a player's inventory and purge him from his room's inhabitants list."
   []
-  (dosync
-   (doseq [thing @*inventory*]
-     (drop-thing thing))
-   (alter (:inhabitants @*current-room*)
-          (partial remove #(= % *name*)))))
+  (doseq [thing @*inventory*] (drop-thing thing))
+  (dosync (commute (:inhabitants @*current-room*)
+                   (partial remove #(= % *name*)))))

@@ -1,11 +1,10 @@
-(ns mire.rooms)
+(ns mire.rooms
+  (:use [clojure.contrib seq-utils]))
 
 (def *rooms* (ref {}))
 
 (defn room-contains? [room thing]
-  (not (empty?
-        (filter #(= % (keyword thing))
-                @(room :items)))))
+  (includes? @(room :items) thing))
 
 (defn make-room
   ([name desc exits items]

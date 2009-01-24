@@ -1,8 +1,9 @@
 (ns mire.commands
   (:use [mire player])
-  (:use [clojure.contrib str-utils]))
+  (:use [clojure.contrib str-utils seq-utils]))
 
-(def commands {"north" (fn [] (move :north))
+(def commands {"move" (fn [dir] (move (keyword dir)))
+               "north" (fn [] (move :north))
                "south" (fn [] (move :south))
                "east" (fn [] (move :east))
                "west" (fn [] (move :west))
@@ -15,6 +16,7 @@
                ;; String values are aliases.
                "get" "take"
                "discard" "drop"
+               "go" "move"
 
                ;; for debugging
                "who" (fn [&rest args] *name*)
@@ -31,9 +33,17 @@
                         "Please rephrase that."
                         "Your words confuse me."])
 
+(def ignored-words ["and" "a" "an" "the" "please"])
+
 (defn parse-input [input]
-  ;; TODO: remove no-op words like "the" "and" etc.
-  (re-split #"\s+" input))
+  ;; TODO: Would be cleaner with something like seq-xor.
+  (filter #(not (includes? ignored-words %))
+          (re-split #"\s+" input)))
+
+(defn pick-rand [coll]
+  ;; TODO: Shouldn't there be something in contrib for this?
+  ;; Could be generalized for other seqs.
+  (coll (rand-int (count coll))))
 
 (defn execute [input]
   ;; TODO: destructure into words split by space using re-matches
@@ -44,5 +54,4 @@
       (if (string? command)
         (apply (commands command) args) ; look up aliased command
         (apply command args))
-      ;; should be some kind of "pick-rand" function for this, no?
-      (unknown-responses (rand-int (count unknown-responses))))))
+      (pick-rand unknown-responses))))
