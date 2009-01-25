@@ -115,4 +115,6 @@
     (try
      (apply (commands (.toLowerCase command)) args)
      (catch java.lang.NullPointerException _
-       (pick-rand unknown-responses)))))
+       (pick-rand unknown-responses))
+     (catch java.lang.IllegalArgumentException _
+       "You can't do that."))))
