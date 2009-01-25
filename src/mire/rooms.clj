@@ -12,32 +12,22 @@
   (includes? @(room :items) (keyword thing)))
 
 (defn make-room
-  ([name desc exits items]
-     (dosync
-      (commute *rooms* conj
-               {name {:name name :desc desc :exits (ref exits)
-                      :items (ref items) :inhabitants (ref []) }})))
-  ([name desc exits]
-     (make-room name desc exits [])))
+  [name contents]
+  (dosync (commute *rooms* conj
+            {name {:name name :desc (:desc contents)
+                   :exits (ref (:exits contents))
+                   :items (ref (or (:items contents) []))
+                   :inhabitants (ref []) }})))
 
-;; TODO: load room (and maybe item) data from files.
+(defn load-rooms
+  "Load room definitions from dir.
 
-(make-room :start
-           "You find yourself in a round room with a pillar in the middle."
-           {:north :closet
-            :south :hallway})
-
-(make-room :closet
-           "You are in a cramped closet."
-           {:south :start}
-           [:keys])
-
-(make-room :hallway
-           "You are in a long, low-lit hallway that turns to the east."
-           {:north :start
-            :east :promenade})
-
-(make-room :promenade
-           "The promenade stretches out before you."
-           {:west :hallway}
-           [:bunny])
+Each room should be a map containing a :desc key for a description,
+an :exits key with a map of exit directions to room names, and
+an :items key with a vector of item names. The :items entry may be
+omitted for rooms containing no items. The filename should be the room
+name."
+  [dir]
+  (doseq [file (.listFiles (java.io.File. dir))]
+    (make-room (keyword (.getName file)) (read (java.io.PushbackReader.
+                                                (java.io.FileReader. file))))))

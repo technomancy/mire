@@ -1,0 +1,2 @@
+{:desc "You are in a long, low-lit hallway that turns to the east."
+ :exits {:north :start :east :promenade} }

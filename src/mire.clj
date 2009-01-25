@@ -40,4 +40,5 @@
            (recur (read-line))))
        (finally (cleanup))))))
 
+(load-rooms "data/rooms/")
 (defonce *server* (create-server port mire-handle-client))
