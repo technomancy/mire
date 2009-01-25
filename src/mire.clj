@@ -10,11 +10,17 @@
 
 (def port 3333)
 
+(defn welcome []
+  (dosync (commute *players* conj {*name* *out*}))
+  (println "Welcome to Mire, " *name* "\n")
+  (println (look))
+  (print prompt) (flush))
+
 (defn cleanup []
-  ;; This is factored out into its own function because doseq calls
-  ;; are currently not allowed in finally blocks. (clojure bug?)
+  "Drop all inventory and remove player from room and player list."
   (doseq [thing @*inventory*] (discard thing))
-  (dosync (commute (:inhabitants @*current-room*)
+  (dosync (commute *players* dissoc *name*)
+          (commute (:inhabitants @*current-room*)
                    (partial remove #(= % *name*)))))
 
 (defn- mire-handle-client [ins outs]
@@ -25,7 +31,7 @@
     (binding [*name* (read-name)
               *inventory* (ref [])
               *current-room* (ref (@mire.rooms/*rooms* :start))]
-      (welcome-player)
+      (welcome)
       (try
        (loop [input (read-line)]
          (when input
@@ -34,4 +40,4 @@
            (recur (read-line))))
        (finally (cleanup))))))
 
-(def *server* (create-server port mire-handle-client))
+(defonce *server* (create-server port mire-handle-client))

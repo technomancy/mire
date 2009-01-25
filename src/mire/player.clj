@@ -2,8 +2,7 @@
   (:use [mire rooms])
   (:use [clojure.contrib seq-utils str-utils]))
 
-;;; TODO: players could be a map that contains player-specific info?
-(def *players* (ref #{}))
+(def *players* (ref {}))
 (def prompt "> ")
 
 (declare *current-room* *inventory* *name*)
@@ -31,10 +30,3 @@
       (do (print "\nThat name is taken; please choose another: ")
           (flush)
           (recur (read-line))))))
-
-(defn welcome-player []
-  (dosync (commute *players* conj *name*))
-  (println "Welcome to Mire, " *name* "\n")
-  ;; TODO: fix this since look is defined in commands.clj
-  ;; (println (look))
-  (print prompt) (flush))

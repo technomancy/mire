@@ -5,6 +5,7 @@
 ;; Command functions
 
 (defn look []
+  "Get a description of the surrounding environs and its contents."
   (let [room @*current-room*]
     (str (:desc room) "\n"
          (look-exits room)
@@ -12,11 +13,13 @@
          (look-inhabitants room))))
 
 (defn inventory []
+  "What are we carrying? Let's take a look."
   (if (empty? @*inventory*)
     "You are not carrying anything."
     (str-join "\n" (map #(:desc (*items* %)) @*inventory*))))
 
 (defn move [direction]
+  "\"♬ We gotta get out of this place... ♪\" Give a direction."
   (let [target-name (@(:exits @*current-room*) direction)
         target (@*rooms* target-name)]
     (if target-name
@@ -29,6 +32,7 @@
       "You can't go that way.")))
 
 (defn grab [thing]
+  "Pick something up."
   (dosync
    (if (room-contains? @*current-room* thing)
      (do (move-between-refs (keyword thing)
@@ -38,6 +42,7 @@
      (str "There isn't any " thing " here."))))
 
 (defn discard [thing]
+  "Put something down."
   (dosync
    (if (inventory-contains? thing)
      (do (move-between-refs (keyword thing)
@@ -46,11 +51,15 @@
          (str "You dropped up the " thing "."))
      (str "You don't have a " thing "."))))
 
-(defn say [words]
-  ;; TODO: write this
-  ;; I guess we need to have the *players* var become a map of player
-  ;; names to streams so we can use those streams to send stuff to folks
-  )
+(defn say [& words]
+  "Speak some words so that they can be heard by everyone within earshot."
+  (let [string (str "\"" (str-join " " words) "\"")]
+    (doseq [player @(:inhabitants @*current-room*)]
+      (if (not (= player *name*))
+        (binding [*out* (*players* player)]
+          (println *name* "says:" string)
+          (print prompt) (flush))))
+    (str "You say: " string)))
 
 ;; Command data
 
@@ -64,34 +73,33 @@
                "inventory" inventory
                "grab" grab
                "discard" discard
+               "say" say
 
                ;; aliases
+               "speak" say
                "go" move
                "get" grab
                "take" grab
                "drop" discard
 
                ;; for debugging
-               "who" (fn [&rest args] *name*)
+               "who" (fn [& args] *name*)
 
                "l" look
                "i" inventory})
 
-(def unknown-responses ["What did you say?"
+(def unknown-responses ["What you say?"
+                        "Speak up!"
                         "I don't get it."
                         "Please rephrase that."
                         "Your words confuse me."])
 
-(def ignored-words ["and" "a" "an" "the" "please"])
-
 ;; Command handling
 
-(defn parse-input [input]
-  "Split input string into words and skip"
-  (remove #(includes? ignored-words %) (re-split #"\s+" input)))
-
 (defn execute [input]
-  (let [[command & args] (parse-input input)]
-    (if command
-      (apply (commands command) args)
-      (pick-rand unknown-responses))))
+  "Execute a command that is passed to us."
+  (let [[command & args] (re-split #"\s+" input)]
+    (try
+     (apply (commands (.toLowerCase command)) args)
+     (catch java.lang.NullPointerException _
+       (pick-rand unknown-responses)))))
