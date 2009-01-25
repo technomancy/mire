@@ -1,6 +1,6 @@
 #!/usr/bin/env clj
 
-;; (add-classpath (str "file://" (.getParent (java.io.File. *file*)) "/"))
+(add-classpath (str "file://" (.getParent (java.io.File. *file*)) "/"))
 
 (ns mire
   (:use [mire commands player rooms])

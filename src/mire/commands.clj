@@ -2,24 +2,28 @@
   (:use [mire player rooms util])
   (:use [clojure.contrib str-utils seq-utils]))
 
+(declare commands)
+
 ;; Command functions
 
-(defn look []
-  "Get a description of the surrounding environs and its contents."
+(defn look "Get a description of the surrounding environs and its contents."
+  []
   (let [room @*current-room*]
     (str (:desc room) "\n"
          (look-exits room)
          (look-items room)
          (look-inhabitants room))))
 
-(defn inventory []
+(defn inventory
   "What are we carrying? Let's take a look."
+  []
   (if (empty? @*inventory*)
     "You are not carrying anything."
     (str-join "\n" (map #(:desc (*items* %)) @*inventory*))))
 
-(defn move [direction]
+(defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
+  [direction]
   (let [target-name (@(:exits @*current-room*) direction)
         target (@*rooms* target-name)]
     (if target-name
@@ -31,8 +35,9 @@
        (look))
       "You can't go that way.")))
 
-(defn grab [thing]
+(defn grab
   "Pick something up."
+  [thing]
   (dosync
    (if (room-contains? @*current-room* thing)
      (do (move-between-refs (keyword thing)
@@ -41,8 +46,9 @@
          (str "You picked up the " thing "."))
      (str "There isn't any " thing " here."))))
 
-(defn discard [thing]
+(defn discard
   "Put something down."
+  [thing]
   (dosync
    (if (inventory-contains? thing)
      (do (move-between-refs (keyword thing)
@@ -51,8 +57,9 @@
          (str "You dropped up the " thing "."))
      (str "You don't have a " thing "."))))
 
-(defn say [& words]
+(defn say
   "Speak some words so that they can be heard by everyone within earshot."
+  [& words]
   (let [string (str "\"" (str-join " " words) "\"")]
     (doseq [player @(:inhabitants @*current-room*)]
       (if (not (= player *name*))
@@ -61,9 +68,16 @@
           (print prompt) (flush))))
     (str "You say: " string)))
 
+(defn help
+  "Print an explaination of available commands."
+  []
+  ;; TODO: how to extract docstring?
+  (str-join "\n" (map #(:doc (meta %))
+                      '(move look inventory grab discard say help))))
+
 ;; Command data
 
-(def commands {"move" (fn [dir] (move (keyword dir)))
+(def commands {"move" move
                "north" (fn [] (move :north))
                "south" (fn [] (move :south))
                "east" (fn [] (move :east))
@@ -74,6 +88,7 @@
                "grab" grab
                "discard" discard
                "say" say
+               "help" help
 
                ;; aliases
                "speak" say
@@ -88,16 +103,14 @@
                "l" look
                "i" inventory})
 
-(def unknown-responses ["What you say?"
-                        "Speak up!"
-                        "I don't get it."
-                        "Please rephrase that."
-                        "Your words confuse me."])
+(def unknown-responses ["What you say?" "Speak up!" "I don't get it."
+                        "Please rephrase that." "Your words confuse me."])
 
 ;; Command handling
 
-(defn execute [input]
+(defn execute
   "Execute a command that is passed to us."
+  [input]
   (let [[command & args] (re-split #"\s+" input)]
     (try
      (apply (commands (.toLowerCase command)) args)
