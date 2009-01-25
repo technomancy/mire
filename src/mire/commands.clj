@@ -71,9 +71,9 @@
 (defn help
   "Print an explaination of available commands."
   []
-  ;; TODO: how to extract docstring?
-  (str-join "\n" (map #(:doc (meta %))
-                      '(move look inventory grab discard say help))))
+  ;; TODO: remove non-commands from output
+  (str-join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
+                      (ns-publics 'mire.commands))))
 
 ;; Command data
 
