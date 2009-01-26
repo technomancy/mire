@@ -1,5 +1,7 @@
 ;; For launching Mire from SLIME
 
+(require 'clojure-mode)
+
 (setq mire-dir (file-name-directory
                 (or (buffer-file-name) load-file-name))
       swank-clojure-jar-path (concat mire-dir "jars/clojure.jar")
