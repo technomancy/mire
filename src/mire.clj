@@ -11,7 +11,8 @@
 (def port 3333)
 
 (defn welcome []
-  (dosync (commute *players* conj {*name* *out*}))
+  (dosync (commute *players* conj {*name* *out*})
+          (commute (:inhabitants @*current-room*) conj *name*))
   (println "Welcome to Mire, " *name* "\n")
   (println (look))
   (print prompt) (flush))
