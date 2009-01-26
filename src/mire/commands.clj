@@ -24,7 +24,7 @@
 (defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
   [direction]
-  (let [target-name (@(:exits @*current-room*) direction)
+  (let [target-name (@(:exits @*current-room*) (keyword direction))
         target (@*rooms* target-name)]
     (if target-name
       (dosync
