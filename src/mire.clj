@@ -4,9 +4,7 @@
 
 (ns mire
   (:use [mire commands player rooms])
-  (:use [clojure.contrib server-socket])
-  (:import [java.io InputStreamReader OutputStreamWriter]
-           [clojure.lang LineNumberingPushbackReader]))
+  (:use [clojure.contrib server-socket duck-streams]))
 
 (def port 3333)
 
@@ -24,9 +22,9 @@
           (commute (:inhabitants @*current-room*)
                    (partial remove #(= % *name*)))))
 
-(defn- mire-handle-client [ins outs]
-  (binding [*in* (LineNumberingPushbackReader. (InputStreamReader. ins))
-            *out* (OutputStreamWriter. outs)]
+(defn- mire-handle-client [in out]
+  (binding [*in* (reader in)
+            *out* (writer out)]
     ;; bindings doesn't work sequentially, so we need to nest them
     ;; otherwise the call to read-name uses the old value of *in*/*out*
     (binding [*name* (read-name)
@@ -42,4 +40,4 @@
        (finally (cleanup))))))
 
 (load-rooms (str (.getParent (java.io.File. *file*)) "/../data/rooms/"))
-(defonce *server* (create-server port mire-handle-client))
+(defonce server (create-server port mire-handle-client))
