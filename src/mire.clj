@@ -1,17 +1,15 @@
 #!/usr/bin/env clj
 
 (ns mire
-  (:use [clojure.contrib server-socket])
-  (:import [java.io InputStreamReader OutputStreamWriter]
-           [clojure.lang LineNumberingPushbackReader]))
+  (:use [clojure.contrib server-socket duck-streams]))
 
-(def port 3333)
+(def port (* 3 1111))
 
-(defn- mire-handle-client [ins outs]
-  (binding [*in* (LineNumberingPushbackReader. (InputStreamReader. ins))
-            *out* (OutputStreamWriter. outs)]
-    (loop [input (read-line)]
-      (println input)
-      (recur (read-line)))))
+(defn mire-handle-client [in out]
+  (binding [*in* (reader in)
+            *out* (writer out)]
+    (loop []
+      (println (read-line))
+      (recur))))
 
-(defonce *server* (create-server port mire-handle-client))
+(def server (create-server port mire-handle-client))
