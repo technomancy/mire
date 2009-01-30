@@ -8,7 +8,7 @@
   (when (seq coll)
       (if (pred (first coll))
         (rest coll)
-        (lazy-cons (first coll) (remove pred (rest coll))))))
+        (lazy-cons (first coll) (remove-first pred (rest coll))))))
 
 (defn move-between-refs
   "Move one instance of obj between ref1 and ref2. Must be called in a transaction."
