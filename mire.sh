@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -cp jars/clojure.jar:jars/clojure-contrib.jar clojure.main src/mire.clj
+java -cp jars/clojure.jar:jars/clojure-contrib.jar:src/ clojure.main src/mire.clj
