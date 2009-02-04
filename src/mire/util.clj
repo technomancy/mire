@@ -17,6 +17,7 @@
   (commute to conj obj))
 
 (defn pick-rand
-  "Return a random element of vect."
-  [vect]
-  (vect (rand-int (count vect))))
+  "Return a random element of coll."
+  [coll]
+  (let [s (seq coll)]
+    (first (drop (rand-int (count s)) s))))
