@@ -7,7 +7,7 @@
 (defn look "Get a description of the surrounding environs and its contents."
   []
   (str (:desc *current-room*)
-       "\nExits: " (keys (:exits room))
+       "\nExits: " (keys (:exits *current-room*))
        ".\n"))
 
 (defn move
@@ -15,8 +15,8 @@
   [direction]
   (let [target-name ((:exits *current-room*) (keyword direction))
         target (rooms target-name)]
-    (if target-name
-      (do (set! *current-room* target)
+    (if target
+      (do (set-current-room target)
           (look))
       "You can't go that way.")))
 
@@ -29,9 +29,6 @@
                "west" (fn [] (move :west)),
                "look" look})
 
-(def unknown-responses ["What you say?" "Speak up!" "I don't get it."
-                        "Please rephrase that." "Your words confuse me."])
-
 ;; Command handling
 
 (defn execute
@@ -40,9 +37,4 @@
   (let [input-words (re-split #"\s+" input)
         command (first input-words)
         args (rest input-words)]
-    (try
-     (apply (commands command) args)
-     (catch java.lang.NullPointerException _
-       (pick-rand unknown-responses))
-     (catch java.lang.IllegalArgumentException _
-       "You can't do that."))))
+    (apply (commands command) args)))
