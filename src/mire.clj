@@ -9,7 +9,8 @@
 
 (defn- mire-handle-client [in out]
   (binding [*in* (reader in)
-            *out* (writer out)]
+            *out* (writer out)
+            *current-room* (rooms :start)]
     (println (look))
     (print prompt) (flush)
     (loop [input (read-line)]

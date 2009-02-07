@@ -7,7 +7,4 @@
       :closet {:desc "You are in a cramped closet."
                 :exits {:south :start}}})
 
-(def *current-room* (rooms :start))
-
-(defn set-current-room [target]
-     (def *current-room* target))
+(def *current-room*)

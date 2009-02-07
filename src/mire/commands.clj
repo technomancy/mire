@@ -16,7 +16,7 @@
   (let [target-name ((:exits *current-room*) (keyword direction))
         target (rooms target-name)]
     (if target
-      (do (set-current-room target)
+      (do (set! *current-room* target)
           (look))
       "You can't go that way.")))
 
