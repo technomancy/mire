@@ -6,18 +6,20 @@
 
 (defn look "Get a description of the surrounding environs and its contents."
   []
-  (str (:desc *current-room*)
-       "\nExits: " (keys (:exits *current-room*))
+  (str (:desc @*current-room*)
+       "\nExits: " (keys (:exits @*current-room*))
        ".\n"))
 
 (defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
   [direction]
-  (let [target-name ((:exits *current-room*) (keyword direction))
+  (let [target-name ((:exits @*current-room*) (keyword direction))
         target (rooms target-name)]
     (if target
-      (do (set! *current-room* target)
-          (look))
+      (dosync (alter (:inhabitants @*current-room*) remove player-name)
+              (alter (:inhabitants target) conj player-name)
+              (ref-set *current-room* target)
+              (look))
       "You can't go that way.")))
 
 ;; Command data
