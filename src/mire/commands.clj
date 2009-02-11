@@ -16,7 +16,7 @@
   (let [target-name ((:exits @*current-room*) (keyword direction))
         target (rooms target-name)]
     (if target
-      (dosync (alter (:inhabitants @*current-room*) remove player-name)
+      (dosync (alter (:inhabitants @*current-room*) remove-from player-name)
               (alter (:inhabitants target) conj player-name)
               (ref-set *current-room* target)
               (look))

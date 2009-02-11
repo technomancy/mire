@@ -1,12 +1,13 @@
 #!/usr/bin/env clj
 
+(add-classpath (str "file://" (.getParent (java.io.File. *file*)) "/"))
+
 (ns mire
   (:use [mire commands rooms])
   (:use [clojure.contrib server-socket duck-streams]))
 
 (def port 3333)
 (def prompt "> ")
-(def player-name)
 
 (defn- mire-handle-client [in out]
   (binding [*in* (reader in)

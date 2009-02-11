@@ -10,3 +10,4 @@
                :inhabitants (ref #{})}})
 
 (def *current-room*)
+(def player-name)
