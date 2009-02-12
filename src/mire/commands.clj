@@ -7,7 +7,7 @@
 (defn look "Get a description of the surrounding environs and its contents."
   []
   (str (:desc @*current-room*)
-       "\nExits: " (keys (:exits @*current-room*))
+       "\nExits: " (keys @(:exits @*current-room*))
        ".\n"))
 
 (defn move
