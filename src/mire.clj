@@ -1,4 +1,6 @@
 #!/usr/bin/env clj
+;; Set the classpath using Hashdot: (http://hashdot.sf.net)
+;;.java.class.path += /home/phil/src/mire/src/
 
 (add-classpath (str "file://" (.getParent (java.io.File. *file*)) "/"))
 
