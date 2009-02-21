@@ -17,4 +17,4 @@
 
 (defn room-contains?
   [room thing]
-  (includes? @(:items room) (keyword thing)))
+  (@(:items room) (keyword thing)))

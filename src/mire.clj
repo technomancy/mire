@@ -29,6 +29,5 @@
         (flush)
         (recur (read-line))))))
 
-(if (empty? @rooms)
-  (load-rooms (str (.getParent (java.io.File. *file*)) "/../data/rooms/")))
-(def server (create-server port mire-handle-client))
+(load-rooms (str (.getParent (java.io.File. *file*)) "/../data/rooms/"))
+(defonce server (create-server port mire-handle-client))
