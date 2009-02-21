@@ -17,7 +17,7 @@
     ;; the one above so *in* and *out* will be bound to the socket
     (print "\nWhat is your name? ") (flush)
     (binding [*player-name* (read-line)
-              *current-room* (ref (@rooms :start))
+              *current-room* (ref (rooms :start))
               *inventory* (ref #{})]
       (dosync (commute (:inhabitants @*current-room*) conj *player-name*))
 
