@@ -80,7 +80,10 @@
 (defn execute
   "Execute a command that is passed to us."
   [input]
-  (let [input-words (re-split #"\s+" input)
-        command (first input-words)
-        args (rest input-words)]
-     (apply (commands command) args)))
+  (try (let [input-words (re-split #"\s+" input)
+             command (first input-words)
+             args (rest input-words)]
+         (apply (commands command) args))
+       (catch Exception e
+         (.printStackTrace e *err*)
+         "You can't do that!")))

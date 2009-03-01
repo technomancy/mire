@@ -9,6 +9,13 @@
 (def port 3333)
 (def prompt "> ")
 
+(defn cleanup []
+  "Drop all inventory and remove player from room and player list."
+  (dosync
+   (map discard @*inventory*)
+   (commute (:inhabitants @*current-room*)
+            remove-from-set *player-name*)))
+
 (defn- mire-handle-client [in out]
   (binding [*in* (reader in)
             *out* (writer out)]
@@ -23,11 +30,11 @@
 
       (println (look)) (print prompt) (flush)
 
-      (loop [input (read-line)]
-        (println (execute input))
-        (print prompt)
-        (flush)
-        (recur (read-line))))))
+      (try (loop [input (read-line)]
+             (println (execute input))
+             (print prompt) (flush)
+             (recur (read-line)))
+           (finally (cleanup))))))
 
 (load-rooms (str (.getParent (java.io.File. *file*)) "/../data/rooms/"))
 (defonce server (create-server port mire-handle-client))
