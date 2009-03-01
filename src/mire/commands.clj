@@ -52,6 +52,16 @@
   []
   (str-join "\n  " (cons "You are carrying:" @*inventory*)))
 
+(defn detect
+  "If you have the detector, you can see which room an item is in."
+  [item]
+  (if (@*inventory* :detector)
+    (if-let [room (first (filter #((:items %) (keyword item))
+                                 (vals rooms)))]
+      (str item " is in " (:name room))
+      (str item " is not in any room."))
+    "You need to be carrying the detector for that."))
+
 ;; Command data
 
 (def commands {"move" move,
@@ -62,6 +72,7 @@
                "grab" grab
                "discard" discard
                "inventory" inventory
+               "detect" detect
                "look" look})
 
 ;; Command handling
