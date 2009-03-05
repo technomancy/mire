@@ -1,5 +1,5 @@
 (ns mire.commands
-  (:use [mire rooms util player])
+  (:use [mire rooms player util])
   (:use [clojure.contrib str-utils seq-utils]))
 
 ;; Command functions
@@ -14,16 +14,17 @@
 (defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
   [direction]
-  (let [target-name ((:exits @*current-room*) (keyword direction))
-        target (rooms target-name)]
-    (if target
-      (dosync
-       (move-between-sets *player-name*
-                          (:inhabitants @*current-room*)
-                          (:inhabitants target))
-       (ref-set *current-room* target)
-       (look))
-      "You can't go that way.")))
+  (dosync
+   (let [target-name ((:exits @*current-room*) (keyword direction))
+         target (rooms target-name)]
+     (if target
+       (do
+         (move-between-sets *player-name*
+                            (:inhabitants @*current-room*)
+                            (:inhabitants target))
+         (ref-set *current-room* target)
+         (look))
+       "You can't go that way."))))
 
 (defn grab
   "Pick something up."
