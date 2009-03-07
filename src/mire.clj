@@ -12,7 +12,8 @@
 (defn cleanup []
   "Drop all inventory and remove player from room and player list."
   (dosync
-   (map discard @*inventory*)
+   (doseq [item @*inventory*]
+     (discard item))
    (commute (:inhabitants @*current-room*)
             disj *player-name*)))
 
