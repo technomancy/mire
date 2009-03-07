@@ -14,7 +14,7 @@
   (dosync
    (map discard @*inventory*)
    (commute (:inhabitants @*current-room*)
-            remove-from-set *player-name*)))
+            disj *player-name*)))
 
 (defn- mire-handle-client [in out]
   (binding [*in* (reader in)
