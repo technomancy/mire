@@ -14,7 +14,7 @@
   (dosync
    (map discard @*inventory*)
    (commute (:inhabitants @*current-room*)
-            remove-from-set *player-name*)))
+            disj *player-name*)))
 
 (defn- mire-handle-client [in out]
   (binding [*in* (reader in)
@@ -31,9 +31,10 @@
       (println (look)) (print prompt) (flush)
 
       (try (loop [input (read-line)]
-             (println (execute input))
-             (print prompt) (flush)
-             (recur (read-line)))
+             (when input
+               (println (execute input))
+               (print prompt) (flush)
+               (recur (read-line))))
            (finally (cleanup))))))
 
 (load-rooms (str (.getParent (java.io.File. *file*)) "/../data/rooms/"))
