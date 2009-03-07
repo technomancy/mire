@@ -14,23 +14,24 @@
 (defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
   [direction]
-  (let [target-name ((:exits @*current-room*) (keyword direction))
-        target (rooms target-name)]
-    (if target
-      (dosync
-       (move-between-sets *player-name*
-                          (:inhabitants @*current-room*)
-                          (:inhabitants target))
-       (ref-set *current-room* target)
-       (look))
-      "You can't go that way.")))
+  (dosync
+   (let [target-name ((:exits @*current-room*) (keyword direction))
+         target (rooms target-name)]
+     (if target
+       (do
+         (move-between-refs *player-name*
+                            (:inhabitants @*current-room*)
+                            (:inhabitants target))
+         (ref-set *current-room* target)
+         (look))
+       "You can't go that way."))))
 
 (defn grab
   "Pick something up."
   [thing]
   (dosync
    (if (room-contains? @*current-room* thing)
-     (do (move-between-sets (keyword thing)
+     (do (move-between-refs (keyword thing)
                             (:items @*current-room*)
                             *inventory*)
          (str "You picked up the " thing "."))
@@ -41,7 +42,7 @@
   [thing]
   (dosync
    (if (carrying? thing)
-     (do (move-between-sets (keyword thing)
+     (do (move-between-refs (keyword thing)
                             *inventory*
                             (:items @*current-room*))
          (str "You dropped the " thing "."))
@@ -50,7 +51,7 @@
 (defn inventory
   "See what you've got."
   []
-  (str-join "\n  " (cons "You are carrying:" @*inventory*)))
+  (str-join "\n  " (conj @*inventory* "You are carrying:")))
 
 (defn detect
   "If you have the detector, you can see which room an item is in."
