@@ -19,7 +19,7 @@
          target (rooms target-name)]
      (if target
        (do
-         (move-between-sets *player-name*
+         (move-between-refs *player-name*
                             (:inhabitants @*current-room*)
                             (:inhabitants target))
          (ref-set *current-room* target)
@@ -31,7 +31,7 @@
   [thing]
   (dosync
    (if (room-contains? @*current-room* thing)
-     (do (move-between-sets (keyword thing)
+     (do (move-between-refs (keyword thing)
                             (:items @*current-room*)
                             *inventory*)
          (str "You picked up the " thing "."))
@@ -42,7 +42,7 @@
   [thing]
   (dosync
    (if (carrying? thing)
-     (do (move-between-sets (keyword thing)
+     (do (move-between-refs (keyword thing)
                             *inventory*
                             (:items @*current-room*))
          (str "You dropped the " thing "."))
@@ -51,7 +51,7 @@
 (defn inventory
   "See what you've got."
   []
-  (str-join "\n  " (cons "You are carrying:" @*inventory*)))
+  (str-join "\n  " (conj @*inventory* "You are carrying:")))
 
 ;; Command data
 
