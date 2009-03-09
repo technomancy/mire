@@ -1,5 +1,5 @@
 (ns mire.test-commands
-  (:use [mire commands player rooms])
+  (:use [mire commands player rooms] :reload-all)
   (:use [clojure.contrib test-is seq-utils]))
 
 (def rooms-dir (str (.getParent (java.io.File. *file*)) "/../data/rooms/"))

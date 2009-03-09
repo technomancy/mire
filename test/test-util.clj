@@ -1,5 +1,5 @@
 (ns mire.test-util
-  (:use [mire util])
+  (:use [mire util] :reload-all)
   (:use [clojure.contrib test-is seq-utils]))
 
 (deftest test-move-between-refs

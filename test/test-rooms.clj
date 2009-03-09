@@ -1,5 +1,5 @@
 (ns mire.test-player
-  (:use [mire player rooms])
+  (:use [mire player rooms] :reload-all)
   (:use [clojure.contrib test-is seq-utils]))
 
 (deftest test-load-rooms
