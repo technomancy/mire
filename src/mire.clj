@@ -38,5 +38,5 @@
                (recur (read-line))))
            (finally (cleanup))))))
 
-(load-rooms (str (.getParent (java.io.File. *file*)) "/../data/rooms/"))
+(load-rooms)
 (defonce server (create-server port mire-handle-client))
