@@ -63,6 +63,13 @@
       (str item " is not in any room."))
     "You need to be carrying the detector for that."))
 
+(defn help
+  "Show available commands and what they do."
+  []
+  (str-join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
+                      (dissoc (ns-publics 'mire.commands)
+                              'execute 'commands))))
+
 ;; Command data
 
 (def commands {"move" move,
@@ -74,7 +81,8 @@
                "discard" discard
                "inventory" inventory
                "detect" detect
-               "look" look})
+               "look" look
+               "help" help})
 
 ;; Command handling
 
