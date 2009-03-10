@@ -1,12 +1,10 @@
 #!/usr/bin/env clj
 
-(add-classpath (str "file://" (.getParent (java.io.File. *file*)) "/"))
-
-(ns mire
+(ns mire.server
   (:use [mire commands rooms player])
-  (:use [clojure.contrib server-socket duck-streams]))
+  (:use [clojure.contrib server-socket duck-streams])
+  (:gen-class))
 
-(def port 3333)
 (def prompt "> ")
 
 (defn cleanup []
@@ -38,5 +36,10 @@
                (recur (read-line))))
            (finally (cleanup))))))
 
-(load-rooms)
-(defonce server (create-server port mire-handle-client))
+(defn -main
+  ([data-dir port]
+     (load-rooms)
+     (defonce server (create-server (Integer. port) mire-handle-client))
+     (println "Launching Mire server on port " port))
+  ([data-dir] (-main data-dir 3333))
+  ([] (-main "data/")))
