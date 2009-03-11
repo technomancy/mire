@@ -2,7 +2,8 @@
 
 (def rooms)
 (def default-rooms-dir
-     (str (.getParent (java.io.File. *file*)) "/../../data/rooms/"))
+     (str (.getParent (.getParentFile (.getAbsoluteFile (java.io.File. *file*))))
+          "/data/rooms/"))
 
 (defn load-room [rooms file]
   (let [room (read-string (slurp (.getAbsolutePath file)))]
