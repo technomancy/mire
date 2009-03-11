@@ -40,6 +40,6 @@
   ([data-dir port]
      (load-rooms)
      (defonce server (create-server (Integer. port) mire-handle-client))
-     (println "Launching Mire server on port " port))
+     (println "Launching Mire server on port" port))
   ([data-dir] (-main data-dir 3333))
   ([] (-main "data/")))

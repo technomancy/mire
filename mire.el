@@ -10,7 +10,7 @@
 
 (slime)
 
-(find-file (concat mire-dir "src/mire.clj"))
+(find-file (concat mire-dir "src/mire/server.clj"))
 
 (defun mire (arg)
   (interactive "P")
