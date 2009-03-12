@@ -37,9 +37,9 @@
            (finally (cleanup))))))
 
 (defn -main
-  ([data-dir port]
-     (load-rooms)
+  ([rooms-dir port]
+     (load-rooms rooms-dir)
      (defonce server (create-server (Integer. port) mire-handle-client))
      (println "Launching Mire server on port" port))
-  ([data-dir] (-main data-dir 3333))
-  ([] (-main "data/")))
+  ([rooms-dir] (-main rooms-dir 3333))
+  ([] (-main "data/rooms")))

@@ -1,9 +1,6 @@
 (ns mire.rooms)
 
 (def rooms)
-(def default-rooms-dir
-     (str (.getParent (.getParentFile (.getAbsoluteFile (java.io.File. *file*))))
-          "/data/rooms/"))
 
 (defn load-room [rooms file]
   (let [room (read-string (slurp (.getAbsolutePath file)))]
@@ -18,8 +15,7 @@
 (defn load-rooms
   ([dir]
      (def rooms (reduce load-room {}
-                        (.listFiles (java.io.File. dir)))))
-  ([] (load-rooms default-rooms-dir)))
+                        (.listFiles (java.io.File. dir))))))
 
 (defn room-contains?
   [room thing]
