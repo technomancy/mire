@@ -1,8 +1,8 @@
-(ns mire.test-commands
+(ns mire.test.commands
   (:use [mire commands player rooms] :reload-all)
-  (:use [clojure.contrib test-is seq-utils]))
+  (:use [clojure.contrib test-is seq-utils duck-streams]))
 
-(def rooms-dir (str (.getParent (java.io.File. *file*)) "/../data/rooms/"))
+(def rooms-dir "data/rooms/")
 
 (defmacro def-command-test [name & body]
   `(deftest ~name
@@ -13,7 +13,9 @@
        ~@body)))
 
 (def-command-test test-execute
-  (is (= "You can't do that!" (execute "drop a can of beans into the fridge")))
+  ;; Silence the error!
+  (binding [*err* (writer "/dev/null")]
+    (is (= "You can't do that!" (execute "discard a can of beans into the fridge"))))
   (is (re-find #"closet" (execute "north")))
   (is (= @*current-room* (:closet rooms))))
 
