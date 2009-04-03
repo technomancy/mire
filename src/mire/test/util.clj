@@ -1,4 +1,4 @@
-(ns mire.test-util
+(ns mire.test.util
   (:use [mire util] :reload-all)
   (:use [clojure.contrib test-is seq-utils]))
 
