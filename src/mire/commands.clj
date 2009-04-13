@@ -51,7 +51,8 @@
 (defn inventory
   "See what you've got."
   []
-  (str-join "\n  " (conj @*inventory* "You are carrying:")))
+  (str "You are carrying:\n"
+       (str-join "\n"  @*inventory*)))
 
 ;; Command data
 
