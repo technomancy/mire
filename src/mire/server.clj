@@ -38,7 +38,7 @@
 
 (defn -main
   ([rooms-dir port]
-     (load-rooms rooms-dir)
+     (set-rooms rooms-dir)
      (defonce server (create-server (Integer. port) mire-handle-client))
      (println "Launching Mire server on port" port))
   ([rooms-dir] (-main rooms-dir 3333))
