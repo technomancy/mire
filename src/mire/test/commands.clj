@@ -2,11 +2,10 @@
   (:use [mire commands player rooms] :reload-all)
   (:use [clojure.contrib test-is seq-utils duck-streams]))
 
-(def rooms-dir "data/rooms/")
+(set-rooms "data/rooms/")
 
 (defmacro def-command-test [name & body]
   `(deftest ~name
-     (load-rooms rooms-dir)
      (binding [*current-room* (ref (:start rooms))
                *inventory* (ref #{})
                *player-name* "Tester"]
