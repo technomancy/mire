@@ -7,11 +7,14 @@
 
 (def prompt "> ")
 
+(def players (ref {}))
+
 (defn cleanup []
   "Drop all inventory and remove player from room and player list."
   (dosync
    (doseq [item @*inventory*]
      (discard item))
+   (commute players dissoc *player-name*)
    (commute (:inhabitants @*current-room*)
             disj *player-name*)))
 
@@ -25,7 +28,8 @@
     (binding [*player-name* (read-line)
               *current-room* (ref (rooms :start))
               *inventory* (ref #{})]
-      (dosync (commute (:inhabitants @*current-room*) conj *player-name*))
+      (dosync (commute (:inhabitants @*current-room*) conj *player-name*)
+              (commute players assoc *player-name* *out*))
 
       (println (look)) (print prompt) (flush)
 
