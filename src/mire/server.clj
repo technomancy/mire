@@ -14,6 +14,13 @@
    (commute (:inhabitants @*current-room*)
             disj *player-name*)))
 
+(defn get-unique-player-name [name]
+  (if (@player-streams name)
+    (do (print "That name is in use; try again: ")
+        (flush)
+        (recur (read-line)))
+    name))
+
 (defn- mire-handle-client [in out]
   (binding [*in* (reader in)
             *out* (writer out)]
@@ -21,11 +28,13 @@
     ;; We have to nest this in another binding call instead of using
     ;; the one above so *in* and *out* will be bound to the socket
     (print "\nWhat is your name? ") (flush)
-    (binding [*player-name* (read-line)
+    (binding [*player-name* nil
               *current-room* (ref (rooms :start))
               *inventory* (ref #{})]
-      (dosync (commute (:inhabitants @*current-room*) conj *player-name*)
-              (commute player-streams assoc *player-name* *out*))
+      (dosync
+       (set! *player-name* (get-unique-player-name (read-line)))
+       (commute (:inhabitants @*current-room*) conj *player-name*)
+       (commute player-streams assoc *player-name* *out*))
 
       (println (look)) (print prompt) (flush)
 
