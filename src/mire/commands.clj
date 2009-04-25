@@ -64,6 +64,16 @@
       (str item " is not in any room."))
     "You need to be carrying the detector for that."))
 
+(defn say
+  "Say something out loud so everyone in the room can hear."
+  [& words]
+  (let [message (str-join " " words)]
+    (doseq [inhabitant (disj @(:inhabitants @*current-room*) *player-name*)]
+      (binding [*out* (player-streams inhabitant)]
+        (println message)
+        (println prompt)))
+    (str "You said " message)))
+
 (defn help
   "Show available commands and what they do."
   []
@@ -83,6 +93,7 @@
                "inventory" inventory
                "detect" detect
                "look" look
+               "say" say
                "help" help})
 
 ;; Command handling

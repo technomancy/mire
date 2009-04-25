@@ -5,16 +5,12 @@
   (:use [clojure.contrib server-socket duck-streams])
   (:gen-class))
 
-(def prompt "> ")
-
-(def players (ref {}))
-
 (defn cleanup []
   "Drop all inventory and remove player from room and player list."
   (dosync
    (doseq [item @*inventory*]
      (discard item))
-   (commute players dissoc *player-name*)
+   (commute player-streams dissoc *player-name*)
    (commute (:inhabitants @*current-room*)
             disj *player-name*)))
 
@@ -29,7 +25,7 @@
               *current-room* (ref (rooms :start))
               *inventory* (ref #{})]
       (dosync (commute (:inhabitants @*current-room*) conj *player-name*)
-              (commute players assoc *player-name* *out*))
+              (commute player-streams assoc *player-name* *out*))
 
       (println (look)) (print prompt) (flush)
 
