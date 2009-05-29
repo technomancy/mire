@@ -5,13 +5,16 @@ cd `dirname $0`
 # Replace ~/src/clojure(-contrib)? with your clojure install location
 
 rm -rf classes/*
-unzip -u ~/src/clojure/clojure.jar -d classes/
-unzip -u ~/src/clojure-contrib/clojure-contrib.jar -d classes
+unzip -u ../clojure/clojure.jar -d target/dependency
+unzip -u ../clojure-contrib/clojure-contrib.jar -d target/dependency/
 rm -rf classes/META-INF
 
-java -cp jars/clojure.jar:jars/clojure-contrib.jar:src/:classes/ \
+java -cp src/:target/classes/:target/dependency -Dclojure.compile.path=target/classes \
      clojure.main -e "(compile 'mire.server)"
 
-jar cmf Manifest.txt mire.jar -C classes .
+mkdir -p target/jar
+cp -r target/dependency/* target/jar
+cp -r target/classes/* target/jar
+jar cf target/mire.jar -C target/jar .
 
-echo "\nCreated mire.jar. Use \"java -jar mire.jar\" to launch."
+echo "Created target/mire.jar. Use \"java -jar target/mire.jar\" to launch."
