@@ -32,5 +32,5 @@ While you can learn from Mire on its own, it has been written
 specifically for the PeepCode screencast on Clojure, which should be
 released early March 2009.
 
-Copyright (c) 2009 Phil Hagelberg
+Copyright (c) 2009-2010 Phil Hagelberg
 Licensed under the same terms as Clojure.
