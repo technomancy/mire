@@ -12,5 +12,5 @@ need a JVM on your system.
 To connect, simply telnet to port 3333, or hit M-x mire from within
 Emacs if you have used mire.el.
 
-Copyright (c) 2009 Phil Hagelberg
+Copyright (c) 2009-2010 Phil Hagelberg
 Licensed under the same terms as Clojure.
