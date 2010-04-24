@@ -1,11 +1,11 @@
-#!/usr/bin/env clj
-
 (ns mire.server
-  (:use [mire commands rooms player])
-  (:use [clojure.contrib server-socket duck-streams])
-  (:gen-class))
+  (:use [mire.player]
+        [mire.commands :only [discard look execute]]
+        [mire.rooms :only [add-rooms rooms]])
+  (:use [clojure.contrib.io :only [reader writer]]
+        [clojure.contrib.server-socket :only [create-server]]))
 
-(defn cleanup []
+(defn- cleanup []
   "Drop all inventory and remove player from room and player list."
   (dosync
    (doseq [item @*inventory*]
@@ -14,7 +14,7 @@
    (commute (:inhabitants @*current-room*)
             disj *player-name*)))
 
-(defn get-unique-player-name [name]
+(defn- get-unique-player-name [name]
   (if (@player-streams name)
     (do (print "That name is in use; try again: ")
         (flush)
@@ -46,9 +46,9 @@
            (finally (cleanup))))))
 
 (defn -main
-  ([rooms-dir port]
-     (set-rooms rooms-dir)
+  ([port dir]
+     (add-rooms dir)
      (defonce server (create-server (Integer. port) mire-handle-client))
      (println "Launching Mire server on port" port))
-  ([rooms-dir] (-main rooms-dir 3333))
-  ([] (-main "data/rooms")))
+  ([port] (-main port "resources/rooms"))
+  ([] (-main 3333)))
