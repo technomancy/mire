@@ -1,5 +1,4 @@
-(ns mire.player
-  (:use [clojure.contrib.seq-utils]))
+(ns mire.player)
 
 (def *current-room*)
 (def *inventory*)
@@ -10,4 +9,4 @@
 
 (defn carrying?
   [thing]
-  (includes? @*inventory* (keyword thing)))
+  (some #{@*inventory*} (keyword thing)))
