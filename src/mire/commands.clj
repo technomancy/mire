@@ -1,6 +1,13 @@
 (ns mire.commands
-  (:use [mire rooms util player])
-  (:use [clojure.contrib str-utils seq-utils]))
+  (:use [mire.rooms :only [rooms room-contains?]]
+        [mire.player])
+  (:use [clojure.contrib.string :only [join]]))
+
+(defn move-between-refs
+  "Move one instance of obj between from and to. Must call in a transaction."
+  [obj from to]
+  (alter from disj obj)
+  (alter to conj obj))
 
 ;; Command functions
 
@@ -8,7 +15,7 @@
   []
   (str (:desc @*current-room*)
        "\nExits: " (keys @(:exits @*current-room*)) "\n"
-       (str-join "\n" (map #(str "There is " % " here.\n")
+       (join "\n" (map #(str "There is " % " here.\n")
                            @(:items @*current-room*)))))
 
 (defn move
@@ -52,7 +59,7 @@
   "See what you've got."
   []
   (str "You are carrying:\n"
-       (str-join "\n"  @*inventory*)))
+       (join "\n"  @*inventory*)))
 
 (defn detect
   "If you have the detector, you can see which room an item is in."
@@ -67,7 +74,7 @@
 (defn say
   "Say something out loud so everyone in the room can hear."
   [& words]
-  (let [message (str-join " " words)]
+  (let [message (join " " words)]
     (doseq [inhabitant (disj @(:inhabitants @*current-room*) *player-name*)]
       (binding [*out* (player-streams inhabitant)]
         (println message)
@@ -77,7 +84,7 @@
 (defn help
   "Show available commands and what they do."
   []
-  (str-join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
+  (join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
                       (dissoc (ns-publics 'mire.commands)
                               'execute 'commands))))
 
@@ -101,7 +108,7 @@
 (defn execute
   "Execute a command that is passed to us."
   [input]
-  (try (let [[command & args] (re-split #"\s+" input)]
+  (try (let [[command & args] (.split input " +")]
          (apply (commands command) args))
        (catch Exception e
          (.printStackTrace e *err*)
