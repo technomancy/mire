@@ -1,8 +1,12 @@
-(ns mire.test.commands
-  (:use [mire commands player rooms] :reload-all)
-  (:use [clojure.contrib test-is seq-utils duck-streams]))
+(ns test-commands
+  (:use [mire.commands]
+        :reload-all)
+  (:use [mire.player]
+        [mire.rooms :only [add-rooms rooms]]
+        [clojure.test]
+        [clojure.contrib.io :only [writer]]))
 
-(set-rooms "data/rooms/")
+(add-rooms "resources/rooms/")
 
 (defmacro def-command-test [name & body]
   `(deftest ~name
@@ -14,7 +18,8 @@
 (def-command-test test-execute
   ;; Silence the error!
   (binding [*err* (writer "/dev/null")]
-    (is (= "You can't do that!" (execute "discard a can of beans into the fridge"))))
+    (is (= "You can't do that!"
+           (execute "discard a can of beans into the fridge"))))
   (is (re-find #"closet" (execute "north")))
   (is (= @*current-room* (:closet rooms))))
 

@@ -9,4 +9,4 @@
 
 (defn carrying?
   [thing]
-  (some #{@*inventory*} (keyword thing)))
+  (some #{(keyword thing)} @*inventory*))
