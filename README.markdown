@@ -2,15 +2,18 @@
 
 It's a nonviolent MUD. (Multi-User Dungeon)
 
-You can either launch via SLIME by evaling mire.el from within Emacs
-(preferred since it gives you access to the REPL) or by the included
-mire.sh shell script.
+## Usage
 
-Dependencies (clojure, clojure-contrib) are included, though you will
-need a JVM on your system.
+Install [Leiningen](http://github.com/technomancy/leiningen) if you
+haven't already:
 
-To connect, simply telnet to port 3333, or hit M-x mire from within
-Emacs if you have used mire.el.
+    $ curl -O ~/bin/lein http://github.com/technomancy/leiningen/raw/stable/bin/lein
+    $ chmod 755 bin/lein
+    $ lein self-install
+
+Then run "lein deps" inside the Mire directory. Once it finishes, you
+should be able to do "lein run" to launch the Mire server. Then
+players can connect by telnetting to port 3333.
 
 Copyright (c) 2009-2010 Phil Hagelberg
 Licensed under the same terms as Clojure.
