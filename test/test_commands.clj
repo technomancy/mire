@@ -10,7 +10,7 @@
 
 (defmacro def-command-test [name & body]
   `(deftest ~name
-     (binding [*current-room* (ref (:start rooms))
+     (binding [*current-room* (ref (:start @rooms))
                *inventory* (ref #{})
                *player-name* "Tester"]
        ~@body)))
@@ -21,7 +21,7 @@
     (is (= "You can't do that!"
            (execute "discard a can of beans into the fridge"))))
   (is (re-find #"closet" (execute "north")))
-  (is (= @*current-room* (:closet rooms))))
+  (is (= @*current-room* (:closet @rooms))))
 
 (def-command-test test-move
   (is (re-find #"hallway" (execute "south")))
@@ -29,7 +29,7 @@
   (is (re-find #"can't go that way" (move "south"))))
 
 (def-command-test test-look
-  (binding [*current-room* (ref (:closet rooms))]
+  (binding [*current-room* (ref (:closet @rooms))]
     (doseq [look-for [#"closet" #"keys" #"south"]]
     (is (re-find look-for (look))))))
 
@@ -39,7 +39,7 @@
     (is (re-find #"keys" (inventory)))))
 
 (def-command-test test-grab
-  (binding [*current-room* (ref (:closet rooms))]
+  (binding [*current-room* (ref (:closet @rooms))]
     (is (not (= "There isn't any keys here"
                 (grab "keys"))))
     (is (carrying? :keys))

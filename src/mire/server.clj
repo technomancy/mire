@@ -29,7 +29,7 @@
     ;; the one above so *in* and *out* will be bound to the socket
     (print "\nWhat is your name? ") (flush)
     (binding [*player-name* nil
-              *current-room* (ref (rooms :start))
+              *current-room* (ref (@rooms :start))
               *inventory* (ref #{})]
       (dosync
        (set! *player-name* (get-unique-player-name (read-line)))

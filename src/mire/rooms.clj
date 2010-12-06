@@ -1,6 +1,6 @@
 (ns mire.rooms)
 
-(def rooms {})
+(def rooms (ref {}))
 
 (defn load-room [rooms file]
   (let [room (read-string (slurp (.getAbsolutePath file)))]
@@ -16,13 +16,15 @@
   "Given a dir, return a map with an entry corresponding to each file
   in it. Files should be maps containing room data."
   [rooms dir]
-  (reduce load-room rooms (.listFiles (java.io.File. dir))))
+  (dosync
+   (reduce load-room rooms
+           (.listFiles (java.io.File. dir)))))
 
 (defn add-rooms
   "Look through all the files in a dir for files describing rooms and add
   them to the mire.rooms/rooms map."
   [dir]
-  (alter-var-root #'rooms load-rooms dir))
+  (alter! rooms load-rooms dir))
 
 (defn room-contains?
   [room thing]

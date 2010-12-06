@@ -11,7 +11,8 @@
 
 ;; Command functions
 
-(defn look "Get a description of the surrounding environs and its contents."
+(defn look
+  "Get a description of the surrounding environs and its contents."
   []
   (str (:desc @*current-room*)
        "\nExits: " (keys @(:exits @*current-room*)) "\n"
@@ -23,7 +24,7 @@
   [direction]
   (dosync
    (let [target-name ((:exits @*current-room*) (keyword direction))
-         target (rooms target-name)]
+         target (@rooms target-name)]
      (if target
        (do
          (move-between-refs *player-name*
@@ -66,7 +67,7 @@
   [item]
   (if (@*inventory* :detector)
     (if-let [room (first (filter #((:items %) (keyword item))
-                                 (vals rooms)))]
+                                 (vals @rooms)))]
       (str item " is in " (:name room))
       (str item " is not in any room."))
     "You need to be carrying the detector for that."))
