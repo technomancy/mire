@@ -2,7 +2,7 @@
   (:use [mire.player]
         [mire.commands :only [discard look execute]]
         [mire.rooms :only [add-rooms rooms]])
-  (:use [clojure.contrib.io :only [reader writer]]
+  (:use [clojure.java.io :only [reader writer]]
         [clojure.contrib.server-socket :only [create-server]]))
 
 (defn- cleanup []

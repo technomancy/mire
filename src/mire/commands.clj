@@ -1,9 +1,9 @@
 (ns mire.commands
   (:use [mire.rooms :only [rooms room-contains?]]
         [mire.player])
-  (:use [clojure.contrib.string :only [join]]))
+  (:use [clojure.string :only [join]]))
 
-(defn move-between-refs
+(defn- move-between-refs
   "Move one instance of obj between from and to. Must call in a transaction."
   [obj from to]
   (alter from disj obj)
