@@ -24,7 +24,8 @@
   "Look through all the files in a dir for files describing rooms and add
   them to the mire.rooms/rooms map."
   [dir]
-  (alter! rooms load-rooms dir))
+  (dosync
+   (alter rooms load-rooms dir)))
 
 (defn room-contains?
   [room thing]
