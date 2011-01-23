@@ -60,7 +60,7 @@
   "See what you've got."
   []
   (str "You are carrying:\n"
-       (join "\n"  @*inventory*)))
+       (join "\n" (seq @*inventory*))))
 
 (defn detect
   "If you have the detector, you can see which room an item is in."
