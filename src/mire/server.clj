@@ -28,11 +28,10 @@
     ;; We have to nest this in another binding call instead of using
     ;; the one above so *in* and *out* will be bound to the socket
     (print "\nWhat is your name? ") (flush)
-    (binding [*player-name* nil
+    (binding [*player-name* (get-unique-player-name (read-line))
               *current-room* (ref (@rooms :start))
               *inventory* (ref #{})]
       (dosync
-       (set! *player-name* (get-unique-player-name (read-line)))
        (commute (:inhabitants @*current-room*) conj *player-name*)
        (commute player-streams assoc *player-name* *out*))
 

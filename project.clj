@@ -2,5 +2,4 @@
   :description "A multiuser text adventure game/learning project."
   :main mire.server
   :dependencies [[org.clojure/clojure "1.2.0"]
-                 [org.clojure/clojure-contrib "1.2.0"]]
-  :dev-dependencies [[swank-clojure "1.3.0-SNAPSHOT"]])
+                 [org.clojure/clojure-contrib "1.2.0"]])

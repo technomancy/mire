@@ -9,11 +9,9 @@ haven't already:
 
     $ curl -O ~/bin/lein http://github.com/technomancy/leiningen/raw/stable/bin/lein
     $ chmod 755 bin/lein
-    $ lein self-install
 
-Then run "lein deps" inside the Mire directory. Once it finishes, you
-should be able to do "lein run" to launch the Mire server. Then
-players can connect by telnetting to port 3333.
+Then do "lein run" inside the Mire directory to launch the Mire
+server. Then players can connect by telnetting to port 3333.
 
 ## Motivation
 
@@ -33,5 +31,5 @@ While you can learn from Mire on its own, it has been written
 specifically for the [PeepCode screencast on
 Clojure](http://peepcode.com/products/functional-programming-with-clojure).
 
-Copyright (c) 2009-2010 Phil Hagelberg
+Copyright © 2009-2011 Phil Hagelberg
 Licensed under the same terms as Clojure.
