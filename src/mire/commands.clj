@@ -112,5 +112,5 @@
   (try (let [[command & args] (.split input " +")]
          (apply (commands command) args))
        (catch Exception e
-         (.printStackTrace e *err*)
+         (.printStackTrace e (new java.io.PrintWriter *err*))
          "You can't do that!")))

@@ -23,7 +23,8 @@
 
 (defn- mire-handle-client [in out]
   (binding [*in* (reader in)
-            *out* (writer out)]
+            *out* (writer out)
+            *err* (writer System/err)]
 
     ;; We have to nest this in another binding call instead of using
     ;; the one above so *in* and *out* will be bound to the socket
@@ -40,6 +41,7 @@
       (try (loop [input (read-line)]
              (when input
                (println (execute input))
+               (.flush *err*)
                (print prompt) (flush)
                (recur (read-line))))
            (finally (cleanup))))))
