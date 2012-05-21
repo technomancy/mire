@@ -1,10 +1,9 @@
 (ns test-commands
-  (:use [mire.commands]
-        :reload-all)
   (:use [mire.player]
+        [mire.commands]
         [mire.rooms :only [add-rooms rooms]]
         [clojure.test]
-        [clojure.contrib.io :only [writer]]))
+        [clojure.java.io :only [writer]]))
 
 (add-rooms "resources/rooms/")
 

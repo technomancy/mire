@@ -3,7 +3,7 @@
         [mire.commands :only [discard look execute]]
         [mire.rooms :only [add-rooms rooms]])
   (:use [clojure.java.io :only [reader writer]]
-        [clojure.contrib.server-socket :only [create-server]]))
+        [server.socket :only [create-server]]))
 
 (defn- cleanup []
   "Drop all inventory and remove player from room and player list."

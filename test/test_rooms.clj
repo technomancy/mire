@@ -1,9 +1,9 @@
 (ns test-rooms
-  (:use [mire.rooms] :reload-all)
-  (:use [clojure.test]))
+  (:use [mire.rooms]
+        [clojure.test]))
 
 (defn room-fixture [f]
-  (binding [rooms (atom (load-rooms {} "resources/rooms/"))]
+  (with-redefs [rooms (atom (load-rooms {} "resources/rooms/"))]
     (f)))
 
 (use-fixtures :each room-fixture)

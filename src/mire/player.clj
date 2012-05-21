@@ -1,8 +1,8 @@
 (ns mire.player)
 
-(def *current-room*)
-(def *inventory*)
-(def *player-name*)
+(def ^:dynamic *current-room*)
+(def ^:dynamic *inventory*)
+(def ^:dynamic *player-name*)
 
 (def prompt "> ")
 (def player-streams (ref {}))
