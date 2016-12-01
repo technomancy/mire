@@ -9,12 +9,15 @@
   (alter from disj obj)
   (alter to conj obj))
 
+
+
 ;; Command functions
 
 (defn look
   "Get a description of the surrounding environs and its contents."
   []
   (str (:desc @*current-room*)
+       "\nMessage: " (:message @*current-room*)
        "\nExits: " (keys @(:exits @*current-room*)) "\n"
        (join "\n" (map #(str "There is " % " here.\n")
                            @(:items @*current-room*)))))
@@ -55,6 +58,19 @@
                             (:items @*current-room*))
          (str "You dropped the " thing "."))
      (str "You're not carrying a " thing "."))))
+
+(defn message 
+  "Left a message in room"
+  [line]
+  (dosync 
+    (alter *current-room* conj [:message line])
+    (str "You left a message: " line)))
+;  [& line]
+ ; (dosync
+  ; (do (set-message (keyword line)
+   ;      (:message @*current-room*))
+    ;     (str "You left the message " line "."))
+     ;))
 
 (defn inventory
   "See what you've got."
@@ -102,7 +118,8 @@
                "detect" detect
                "look" look
                "say" say
-               "help" help})
+               "help" help
+               "message" message})
 
 ;; Command handling
 
