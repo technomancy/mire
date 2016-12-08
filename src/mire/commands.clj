@@ -61,10 +61,11 @@
 
 (defn message 
   "Left a message in room"
-  [line]
+  [& line]
+  ( let [message1 (join " " line)]
   (dosync 
-    (alter *current-room* conj [:message line])
-    (str "You left a message: " line)))
+    (alter *current-room* conj [:message message1])
+    (str "You left a message: " message1))))
 ;  [& line]
  ; (dosync
   ; (do (set-message (keyword line)
