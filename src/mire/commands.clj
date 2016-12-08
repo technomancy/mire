@@ -37,6 +37,23 @@
          (look))
        "You can't go that way."))))
 
+(defn teleport
+  "If you have the teleport-panel, you can teleport to any room."
+  [room]
+  (if (@*inventory* :teleport-panel)
+  (dosync
+   (let [target-name (keyword room)
+         target (@rooms target-name)]
+     (if target
+       (do
+         (move-between-refs *player-name*
+                            (:inhabitants @*current-room*)
+                            (:inhabitants target))
+         (ref-set *current-room* target)
+         (look))
+       "This room doesn't exist.")))
+  "You need to be carrying the teleport-panel for that."))
+
 (defn grab
   "Pick something up."
   [thing]
@@ -59,11 +76,11 @@
          (str "You dropped the " thing "."))
      (str "You're not carrying a " thing "."))))
 
-(defn message 
+(defn message
   "Left a message in room"
   [& line]
   ( let [message1 (join " " line)]
-  (dosync 
+  (dosync
     (alter *current-room* conj [:message message1])
     (str "You left a message: " message1))))
 ;  [& line]
@@ -113,6 +130,11 @@
                "south" (fn [] (move :south)),
                "east" (fn [] (move :east)),
                "west" (fn [] (move :west)),
+               "teleport" teleport,
+               "closet" (fn [] (teleport :closet)),
+               "hallway" (fn [] (teleport :hallway)),
+               "promenade" (fn [] (teleport :promenade)),
+               "start" (fn [] (teleport :start)),
                "grab" grab
                "discard" discard
                "inventory" inventory
