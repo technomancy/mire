@@ -83,26 +83,18 @@
   (dosync
     (alter *current-room* conj [:message message1])
     (str "You left a message: " message1))))
+;  [& line]
+ ; (dosync
+  ; (do (set-message (keyword line)
+   ;      (:message @*current-room*))
+    ;     (str "You left the message " line "."))
+     ;))
 
 (defn inventory
   "See what you've got."
   []
   (str "You are carrying:\n"
        (join "\n" (seq @*inventory*))))
-
-(defn show-name
-  []
-  "See what is your name."
-  
-  (str *player-name*))
-
-(defn change-name
-   [& line]
-  (let [line1 (join " " line)]
-  (dosync
-    (set! *player-name* line1)
-    (str "Your name now is: " line1))))
-  
 
 (defn detect
   "If you have the detector, you can see which room an item is in."
@@ -123,14 +115,24 @@
         (println message)
         (println prompt)))
     (str "You said " message)))
+	
+	
+(defn show-users-list
+	"Display name for each user being on the server"
+	[]
+		(println "The names of all the players being on the server now:") 
+		(println "----------------------------------------------------")
+		(doseq [player @player-streams]
+			(println "\t" (first player)))
+		(println "----------------------------------------------------"))
 
 (defn help
   "Show available commands and what they do."
   []
   (join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
                       (dissoc (ns-publics 'mire.commands)
-                              'execute 'commands))))
-
+                              'execute 'commands))))		  
+							  
 ;; Command data
 
 (def commands {"move" move,
@@ -150,9 +152,8 @@
                "look" look
                "say" say
                "help" help
-               "show-name" show-name
-               "change-name" change-name
-               "message" message})
+               "message" message
+			   "show-users-list" show-users-list})
 
 ;; Command handling
 
