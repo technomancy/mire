@@ -83,18 +83,26 @@
   (dosync
     (alter *current-room* conj [:message message1])
     (str "You left a message: " message1))))
-;  [& line]
- ; (dosync
-  ; (do (set-message (keyword line)
-   ;      (:message @*current-room*))
-    ;     (str "You left the message " line "."))
-     ;))
 
 (defn inventory
   "See what you've got."
   []
   (str "You are carrying:\n"
        (join "\n" (seq @*inventory*))))
+
+(defn show-name
+  []
+  "See what is your name."
+  
+  (str *player-name*))
+
+(defn change-name
+   [& line]
+  (let [line1 (join " " line)]
+  (dosync
+    (set! *player-name* line1)
+    (str "Your name now is: " line1))))
+  
 
 (defn detect
   "If you have the detector, you can see which room an item is in."
@@ -142,6 +150,8 @@
                "look" look
                "say" say
                "help" help
+               "show-name" show-name
+               "change-name" change-name
                "message" message})
 
 ;; Command handling
