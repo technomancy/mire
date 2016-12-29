@@ -1,6 +1,7 @@
 {:desc "You find yourself in a round room with a pillar in the middle."
  :message "hello"
- :exits {:north :closet :south :hallway :east :basement}
+
+ :exits {:north :closet :south :hallway :east :basement :west :shop}
  :status {:north "open" :south "close"}
  :items #{:chest}
  }

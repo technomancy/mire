@@ -13,6 +13,63 @@
 
 ;; Command functions
 
+(defn buy
+  "Buy item if have enough coins."
+  [item]
+  (dosync
+   (if (= :shop (:name @*current-room*))
+     (do (if (@(:shoplist @*current-room*) (keyword item))
+      (do (if (@*inventory* :coin)
+          (do (move-between-refs (keyword :coin)
+                            *inventory*
+                            (:kassa @*current-room*))
+            (move-between-refs (keyword item)
+                            (:shoplist @*current-room*)
+                            *inventory*)  
+            (str "You bought the " item "."))
+          (str "You dont have coin.")))
+      (str "There isn't any " item " in shop now.")))
+     (str "There is no shop here."))))
+
+(defn sell
+  "Sell item for 1 coin."
+  [item]
+  (dosync
+   (if (= :shop (:name @*current-room*))
+     (do (if (carrying? item)
+      (do (if (@(:kassa @*current-room*) (keyword :coin))
+          (do (move-between-refs (keyword :coin)
+                            (:kassa @*current-room*)
+                            *inventory*)
+            (move-between-refs (keyword item)
+                            *inventory*
+                            (:shoplist @*current-room*))  
+            (str "You sold the " item "."))
+          (str "There are no coins in shop.")))
+      (str "You dont have " item ".")))
+     (str "There is no shop here."))))
+
+(defn lookshop
+  "Get a list of item in shop."
+  []
+  (if (= :shop (:name @*current-room*))
+  (str  (join (map #(str "There is " % " in shop.\n")
+              @(:shoplist @*current-room*)))
+    (join "\n" (map #(str "There is " % " here.\n")
+                           @(:kassa @*current-room*)))  )
+  (str "There is no shop here.")))
+
+(defn addtoshop
+  "Put something down that you're carrying."
+  [thing]
+  (dosync
+   (if (carrying? thing)
+     (do (move-between-refs (keyword thing)
+                            *inventory*
+                            (:shoplist @*current-room*))
+         (str "You added to shop " thing "."))
+     (str "You're not carrying a " thing "."))))
+
 (defn look
   "Get a description of the surrounding environs and its contents."
   []
@@ -238,7 +295,11 @@
 			   "show-users-list" show-users-list
                "check" check-state
                "change" change
-               "whos-here" who-is-in-the-room})
+               "whos-here" who-is-in-the-room
+               "addtoshop" addtoshop
+             "lookshop" lookshop
+             "buy" buy
+             "sell" sell})
 
 ;; Command handling
 
