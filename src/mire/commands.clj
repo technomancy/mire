@@ -187,6 +187,12 @@
     (set! *player-name* line1)
     (str "Your name now is: " line1))))
 
+(defn who-is-in-the-room
+  []
+  (doseq [player @player-streams]
+      (println "\t" (get player 0))
+  ))
+
 ;; Command data
 
 (def commands {"move" move,
@@ -211,7 +217,8 @@
                "change-name" change-name
 			   "show-users-list" show-users-list
                "check" check-state
-               "change" change})
+               "change" change
+               "whos-here" who-is-in-the-room})
 
 ;; Command handling
 

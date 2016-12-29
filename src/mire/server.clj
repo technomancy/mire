@@ -28,13 +28,16 @@
 
     ;; We have to nest this in another binding call instead of using
     ;; the one above so *in* and *out* will be bound to the socket
-    (print "\nWhat is your name? ") (flush)
+    (print "\nWhat is your name and title? ") (flush)
     (binding [*player-name* (get-unique-player-name (read-line))
+              *player-title* (read-line)
               *current-room* (ref (@rooms :start))
               *inventory* (ref #{})]
       (dosync
        (commute (:inhabitants @*current-room*) conj *player-name*)
-       (commute player-streams assoc *player-name* *out*))
+       (commute player-streams assoc *player-title* *out*)
+       (commute player-streams assoc *player-name* *out*)
+        )
 
       (println (look)) (print prompt) (flush)
 
