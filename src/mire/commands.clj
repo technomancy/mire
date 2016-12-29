@@ -132,6 +132,20 @@
   (join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
                       (dissoc (ns-publics 'mire.commands)
                               'execute 'commands))))		  
+
+
+(defn show-name
+  []
+  "See what is your name."
+  
+  (str *player-name*))
+
+(defn change-name
+   [& line]
+  (let [line1 (join " " line)]
+  (dosync
+    (set! *player-name* line1)
+    (str "Your name now is: " line1))))
 							  
 ;; Command data
 
@@ -153,6 +167,8 @@
                "say" say
                "help" help
                "message" message
+                "show-name" show-name
+               "change-name" change-name
 			   "show-users-list" show-users-list})
 
 ;; Command handling
