@@ -22,20 +22,34 @@
        (join "\n" (map #(str "There is " % " here.\n")
                            @(:items @*current-room*)))))
 
+(defn checkCond
+  []
+  (if (= (get @*current-room* :name) :basement)
+      (if (not(@*inventory* :ladder))
+        (do 
+         false
+        )
+        (do true))
+        (do true)
+      )
+      )
+
 (defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
   [direction]
   (dosync
    (let [target-name ((:exits @*current-room*) (keyword direction))
          target (@rooms target-name)]
-     (if target
-       (do
-         (move-between-refs *player-name*
-                            (:inhabitants @*current-room*)
-                            (:inhabitants target))
-         (ref-set *current-room* target)
-         (look))
-       "You can't go that way."))))
+     (if (checkCond)
+       (if target
+         (do
+           (move-between-refs *player-name*
+                              (:inhabitants @*current-room*)
+                              (:inhabitants target))
+          (ref-set *current-room* target)
+          (look)) "You can't go that way.")
+        (do println(str "You're stuck."))
+       ))))
 
 (defn grab
   "Pick something up."
@@ -65,12 +79,6 @@
   (dosync 
     (alter *current-room* conj [:message line])
     (str "You left a message: " line)))
-;  [& line]
- ; (dosync
-  ; (do (set-message (keyword line)
-   ;      (:message @*current-room*))
-    ;     (str "You left the message " line "."))
-     ;))
 
 (defn inventory
   "See what you've got."
@@ -106,7 +114,6 @@
                               'execute 'commands))))
 
 ;; Command data
-
 (def commands {"move" move,
                "north" (fn [] (move :north)),
                "south" (fn [] (move :south)),
@@ -119,7 +126,9 @@
                "look" look
                "say" say
                "help" help
-               "message" message})
+               "message" message
+               "checkCond" checkCond
+               })
 
 ;; Command handling
 
