@@ -12,6 +12,7 @@
             :items (ref (or (:items room) #{}))
             :inhabitants (ref #{})
             :message (:message room)
+            :status (ref (:status room))
             }})))
 
 (defn load-rooms
