@@ -13,6 +13,8 @@
             :inhabitants (ref #{})
             :message (:message room)
             :status (ref (:status room))
+            :shoplist (ref (or (:items room) #{}))
+            :kassa (ref (or (:items room) #{}))
             }})))
 
 (defn load-rooms

@@ -1,0 +1,3 @@
+{:desc "You are in a shop. Use lookshop to see what you can buy for 1 coin. You can addtoshop something."
+ :exits {:east :start}
+ :shoplist #{:apple}}
