@@ -3,4 +3,5 @@
 
  :exits {:north :closet :south :hallway :east :basement :west :shop}
  :status {:north "open" :south "close"}
+ :item #{:chest}
  }

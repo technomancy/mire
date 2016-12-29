@@ -1,2 +1,3 @@
 {:desc "You fell into the basement. If you do not have the ladder, you are stuck."
- :exits {:west :start}}
+ :exits {:west :start}
+ :item #{:chest}}

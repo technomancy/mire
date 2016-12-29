@@ -1,4 +1,5 @@
 {:desc "The promenade stretches out before you."
  :exits {:west :hallway}
  :status {:west "open"}
- :items #{:bunny :turtle}}
+ :items #{:bunny :turtle}
+ :item #{:chest}}
