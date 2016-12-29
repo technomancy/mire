@@ -2,5 +2,5 @@
  :items #{:detector :teleport-panel :ladder}
  :exits {:north :start :east :promenade}
  :status {:north "close" :east "open"}
- :item #{:chest}
+
  }

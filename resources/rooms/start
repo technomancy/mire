@@ -2,5 +2,5 @@
  :message "hello"
  :exits {:north :closet :south :hallway :east :basement}
  :status {:north "open" :south "close"}
- :item #{:chest}
+ :items #{:chest}
  }
