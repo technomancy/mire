@@ -118,6 +118,7 @@
   [thing]
   (dosync
    (if (room-contains? @*current-room* thing)
+    if not (:thing :chest)
      (do (move-between-refs (keyword thing)
                             (:items @*current-room*)
                             *inventory*)
