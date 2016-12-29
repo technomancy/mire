@@ -2,4 +2,4 @@
  :exits {:west :hallway}
  :status {:west "open"}
  :items #{:bunny :turtle}
- :item #{:chest}}
+ }
