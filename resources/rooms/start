@@ -1,3 +1,5 @@
 {:desc "You find yourself in a round room with a pillar in the middle."
  :message "hello"
- :exits {:north :closet :south :hallway}}
+ :exits {:north :closet :south :hallway}
+ :status {:north "open" :south "close"}
+ }

@@ -1,3 +1,4 @@
 {:desc "You are in a cramped closet."
- :exits {:south :start}
+ :exits {:south :start :north :hidden-one}
+ :status {:south "close" :north "close"}
  :items #{:keys}}

@@ -1,3 +1,5 @@
 {:desc "You are in a long, low-lit hallway that turns to the east."
  :items #{:detector :teleport-panel}
- :exits {:north :start :east :promenade}}
+ :exits {:north :start :east :promenade}
+ :status {:north "close" :east "open"}
+ }

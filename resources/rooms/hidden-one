@@ -1,0 +1,5 @@
+{:desc "If you are here, you can get something special."
+ :exits {:south :closet}
+ :status {:south "close"}
+ :items #{:bunny :duplicator}
+ }
