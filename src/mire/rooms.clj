@@ -10,7 +10,12 @@
             :desc (:desc room)
             :exits (ref (:exits room))
             :items (ref (or (:items room) #{}))
-            :inhabitants (ref #{})}})))
+            :inhabitants (ref #{})
+            :message (:message room)
+            :status (ref (:status room))
+            :shoplist (ref (or (:items room) #{}))
+            :kassa (ref (or (:items room) #{}))
+            }})))
 
 (defn load-rooms
   "Given a dir, return a map with an entry corresponding to each file

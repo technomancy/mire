@@ -9,21 +9,155 @@
   (alter from disj obj)
   (alter to conj obj))
 
+
+
 ;; Command functions
+
+(defn buy
+  "Buy item if have enough coins."
+  [item]
+  (dosync
+   (if (= :shop (:name @*current-room*))
+     (do (if (@(:shoplist @*current-room*) (keyword item))
+      (do (if (@*inventory* :coin)
+          (do (move-between-refs (keyword :coin)
+                            *inventory*
+                            (:kassa @*current-room*))
+            (move-between-refs (keyword item)
+                            (:shoplist @*current-room*)
+                            *inventory*)  
+            (str "You bought the " item "."))
+          (str "You dont have coin.")))
+      (str "There isn't any " item " in shop now.")))
+     (str "There is no shop here."))))
+
+(defn sell
+  "Sell item for 1 coin."
+  [item]
+  (dosync
+   (if (= :shop (:name @*current-room*))
+     (do (if (carrying? item)
+      (do (if (@(:kassa @*current-room*) (keyword :coin))
+          (do (move-between-refs (keyword :coin)
+                            (:kassa @*current-room*)
+                            *inventory*)
+            (move-between-refs (keyword item)
+                            *inventory*
+                            (:shoplist @*current-room*))  
+            (str "You sold the " item "."))
+          (str "There are no coins in shop.")))
+      (str "You dont have " item ".")))
+     (str "There is no shop here."))))
+
+(defn lookshop
+  "Get a list of item in shop."
+  []
+  (if (= :shop (:name @*current-room*))
+  (str  (join (map #(str "There is " % " in shop.\n")
+              @(:shoplist @*current-room*)))
+    (join "\n" (map #(str "There is " % " here.\n")
+                           @(:kassa @*current-room*)))  )
+  (str "There is no shop here.")))
+
+(defn addtoshop
+  "Put something down that you're carrying."
+  [thing]
+  (dosync
+   (if (carrying? thing)
+     (do (move-between-refs (keyword thing)
+                            *inventory*
+                            (:shoplist @*current-room*))
+         (str "You added to shop " thing "."))
+     (str "You're not carrying a " thing "."))))
 
 (defn look
   "Get a description of the surrounding environs and its contents."
   []
   (str (:desc @*current-room*)
+       "\nMessage: " (:message @*current-room*)
        "\nExits: " (keys @(:exits @*current-room*)) "\n"
        (join "\n" (map #(str "There is " % " here.\n")
                            @(:items @*current-room*)))))
 
+(defn checkCond
+  []
+  (if (= (get @*current-room* :name) :basement)
+      (if (not(@*inventory* :ladder))
+        (do 
+         false
+        )
+        (do true))
+        (do true)
+      )
+      )
+
+
+
 (defn move
-  "\"♬ We gotta get out of this place... ♪\" Give a direction."
+  "\"♬ wtf! ♪\" Give a direction."
+  [direction]
+  (if (checkCond)
+    (if (@*inventory* :keys)
+      (dosync
+      (let [target-name ((:exits @*current-room*) (keyword direction))
+         target (@rooms target-name)]
+      (if target
+         (do
+           (move-between-refs *player-name*
+                            (:inhabitants @*current-room*)
+                            (:inhabitants target))
+          (ref-set *current-room* target)
+          (look))
+          "You can't go that way.")))
+      (dosync
+      (let [target-name ((:exits @*current-room*) (keyword direction))
+         target (@rooms target-name)]
+      (if (="open"((:status @*current-room*) (keyword direction)))
+      (if target
+         (do
+           (move-between-refs *player-name*
+                            (:inhabitants @*current-room*)
+                            (:inhabitants target))
+         (ref-set *current-room* target)
+         (look))
+       "You can't go that way.")
+       "This direction is block, U need keys!"
+       ))))
+        (do println(str "You're stuck."))
+        ))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;@(target :exits)
+
+(defn check-state
+  "You can close doors/directions."
   [direction]
   (dosync
-   (let [target-name ((:exits @*current-room*) (keyword direction))
+   (let [target-name ((:status @*current-room*) (keyword direction))
+        target-status (@*current-room* :status) ]
+        (do
+        (if (= "open" (@target-status (keyword direction))) (str "Aaaaaaand Open") (str "CLOSED"))
+          ))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;(assoc @target-status (keyword direction) "close")
+ (defn change
+  "You can close doors/directions, if you only have keys!"
+  [direction]
+   (if (@*inventory* :keys)
+  (dosync
+   (let [target-name ((:status @*current-room*) (keyword direction))
+        target-status (@*current-room* :status) ]
+        (do
+        (if (= "open" (@target-status (keyword direction))) (alter target-status conj [(keyword direction) "close"])
+          (alter target-status conj [(keyword direction) "open"]))
+     )))"Maybe you forgot your keys somewhere?"))
+
+(defn teleport
+  "If you have the teleport-panel, you can teleport to any room."
+  [room]
+  (if (@*inventory* :teleport-panel)
+  (dosync
+   (let [target-name (keyword room)
          target (@rooms target-name)]
      (if target
        (do
@@ -32,7 +166,9 @@
                             (:inhabitants target))
          (ref-set *current-room* target)
          (look))
-       "You can't go that way."))))
+       "This room doesn't exist.")))
+  "You need to be carrying the teleport-panel for that."))
+
 
 (defn grab
   "Pick something up."
@@ -55,6 +191,20 @@
                             (:items @*current-room*))
          (str "You dropped the " thing "."))
      (str "You're not carrying a " thing "."))))
+
+(defn message
+  "Left a message in room"
+  [& line]
+  ( let [message1 (join " " line)]
+  (dosync
+    (alter *current-room* conj [:message message1])
+    (str "You left a message: " message1))))
+;  [& line]
+ ; (dosync
+  ; (do (set-message (keyword line)
+   ;      (:message @*current-room*))
+    ;     (str "You left the message " line "."))
+     ;))
 
 (defn inventory
   "See what you've got."
@@ -82,6 +232,16 @@
         (println prompt)))
     (str "You said " message)))
 
+
+(defn show-users-list
+	"Display name for each user being on the server"
+	[]
+		(println "The names of all the players being on the server now:")
+		(println "----------------------------------------------------")
+		(doseq [player @player-streams]
+			(println "\t" (first player)))
+		(println "----------------------------------------------------"))
+
 (defn help
   "Show available commands and what they do."
   []
@@ -89,20 +249,57 @@
                       (dissoc (ns-publics 'mire.commands)
                               'execute 'commands))))
 
-;; Command data
 
+(defn show-name
+  []
+  "See what is your name."
+
+  (str *player-name*))
+
+(defn change-name
+   [& line]
+  (let [line1 (join " " line)]
+  (dosync
+    (set! *player-name* line1)
+    (str "Your name now is: " line1))))
+
+(defn who-is-in-the-room
+  []
+  (doseq [player @player-streams]
+      (println "\t" (get player 0))
+  ))
+
+;; Command data
 (def commands {"move" move,
                "north" (fn [] (move :north)),
                "south" (fn [] (move :south)),
                "east" (fn [] (move :east)),
                "west" (fn [] (move :west)),
+               "teleport" teleport,
+              ; "closet" (fn [] (teleport :closet)),
+              ; "hallway" (fn [] (teleport :hallway)),
+              ; "promenade" (fn [] (teleport :promenade)),
+              ; "start" (fn [] (teleport :start)),
                "grab" grab
                "discard" discard
                "inventory" inventory
                "detect" detect
                "look" look
                "say" say
-               "help" help})
+               "help" help
+               "message" message
+               "checkCond" checkCond
+
+                "show-name" show-name
+               "change-name" change-name
+			   "show-users-list" show-users-list
+               "check" check-state
+               "change" change
+               "whos-here" who-is-in-the-room
+               "addtoshop" addtoshop
+             "lookshop" lookshop
+             "buy" buy
+             "sell" sell})
 
 ;; Command handling
 
