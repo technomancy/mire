@@ -31,10 +31,21 @@
     (print "\nWhat is your name? ") (flush)
     (binding [*player-name* (get-unique-player-name (read-line))
               *current-room* (ref (@rooms :start))
-              *inventory* (ref #{})]
+              *inventory* (ref #{})
+              *score* (ref 0)
+              *health* (ref 5)
+              *status* (ref "Alive")
+              *money* (ref 0)
+              *weapon* (ref "")
+              *armor*  (ref "")
+              ]
+      
       (dosync
-       (commute (:inhabitants @*current-room*) conj *player-name*)
-       (commute player-streams assoc *player-name* *out*))
+       (commute (:inhabitants @*current-room*) conj *player-name*  )
+       (commute player-streams assoc *player-name* *out*)
+       (commute  players-stats  conj {(keyword *player-name*){:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon*}})
+       ; (conj  players-stats   {:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon*})
+       )
 
       (println (look)) (print prompt) (flush)
 

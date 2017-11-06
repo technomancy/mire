@@ -89,7 +89,50 @@
                       (dissoc (ns-publics 'mire.commands)
                               'execute 'commands))))
 
-;; Command data
+(defn stats 
+  "Show player statistics"
+  ([] (str "\nHealth: " (apply str (repeat @*health* "♥ ")) 
+    "\nScore: " @*score*
+    "\nStatus: " @*status*))
+  ([name]
+    (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
+    (if-let [player (first (filter #(= (:name %) name)
+                                 (vals @players-stats)))] 
+                            (str "\nName:" (:name player) 
+                              "\nHealth: " (apply str (repeat @(:health player) "♥ ")) 
+                              "\nStatus: " @(:status player)
+                              "\nArmor:"  @(:armor player)
+                              "\nWeapon:" @(:weapon player)
+                            )
+    )
+    (str ""))
+   )
+)
+
+(defn players
+  "Show players in the room"
+  []
+    (join "\n" (map stats @(:inhabitants @*current-room*))) 
+)
+
+(defn hit
+  "Hit someone"
+  [name]
+   (if (& (contains? (disj @(:inhabitants @*current-room*) *player-name*) name) ())
+
+    (if-let [player (first (filter #(= (:name %) name)
+                                 (vals @players-stats)))] 
+                           
+                      if(:heal)
+                           (do (dosync 
+                                (ref-set (:health player) (- @(:health player) 1))
+                            ) (str ""))
+    )
+
+    (str ""))
+)
+
+;; Command dataww
 
 (def commands {"move" move,
                "north" (fn [] (move :north)),
@@ -102,6 +145,9 @@
                "detect" detect
                "look" look
                "say" say
+               "stats" stats
+               "hit" hit
+               "players" players
                "help" help})
 
 ;; Command handling
