@@ -118,12 +118,11 @@
 (defn hit
   "Hit someone"
   [name]
-   (if (& (contains? (disj @(:inhabitants @*current-room*) *player-name*) name) ())
+   (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name) 
 
     (if-let [player (first (filter #(= (:name %) name)
                                  (vals @players-stats)))] 
                            
-                      if(:heal)
                            (do (dosync 
                                 (ref-set (:health player) (- @(:health player) 1))
                             ) (str ""))
