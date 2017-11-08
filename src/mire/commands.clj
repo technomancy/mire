@@ -93,7 +93,11 @@
   "Show player statistics"
   ([] (str "\nHealth: " (apply str (repeat @*health* "♥ ")) 
     "\nScore: " @*score*
-    "\nStatus: " @*status*))
+    "\nStatus: " @*status*
+    "\nArmor:"  @*armor*
+    "\nWeapon:" @*weapon*
+    "\nMoney:" @*money*)     
+  )
   ([name]
     (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
     (if-let [player (first (filter #(= (:name %) name)
@@ -106,13 +110,14 @@
                             )
     )
     (str ""))
-   )
+  )
 )
 
 (defn players
   "Show players in the room"
   []
     (join "\n" (map stats @(:inhabitants @*current-room*))) 
+
 )
 
 (defn hit
@@ -121,17 +126,25 @@
    (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name) 
 
     (if-let [player (first (filter #(= (:name %) name)
-                                 (vals @players-stats)))] 
-                           
+                                 (vals @players-stats)))]                
                            (do (dosync 
                                 (ref-set (:health player) (- @(:health player) 1))
+                                (if (< @(:health player) 1) 
+                                  (do (ref-set (:status player) "Dead")
+                                    (binding [*out* (player-streams (:name player))]
+                                                (println "GAME OVER") ) (str "")
+                                        
+
+                                  )
+                                )
+
                             ) (str ""))
     )
 
     (str ""))
 )
 
-;; Command dataww
+;; Command data
 
 (def commands {"move" move,
                "north" (fn [] (move :north)),
