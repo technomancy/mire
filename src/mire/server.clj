@@ -51,15 +51,10 @@
 
       (try (loop [input (read-line)]
              (when (and input  (= @*status* "Alive"))
-
                (println (execute input))
-               (.flush *err*)
-               
+               (.flush *err*)               
                (print prompt) (flush)
-               ( recur (read-line))
-                  
-              
-
+               ( recur (read-line))                  
               )
             )
            (finally (cleanup))))))

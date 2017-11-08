@@ -132,9 +132,7 @@
                                 (if (< @(:health player) 1) 
                                   (do (ref-set (:status player) "Dead")
                                     (binding [*out* (player-streams (:name player))]
-                                                (println "GAME OVER") ) (str "")
-                                        
-
+                                                (println "GAME OVER") )                                     
                                   )
                                 )
 
