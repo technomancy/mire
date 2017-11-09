@@ -43,18 +43,20 @@
       (dosync
        (commute (:inhabitants @*current-room*) conj *player-name*  )
        (commute player-streams assoc *player-name* *out*)
-       (commute  players-stats  conj {(keyword *player-name*){:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon*}})
+       (commute players-stats  conj {(keyword *player-name*){:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon*}})
        ; (conj  players-stats   {:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon*})
        )
 
       (println (look)) (print prompt) (flush)
 
       (try (loop [input (read-line)]
-             (when input
+             (when (and input  (= @*status* "Alive"))
                (println (execute input))
-               (.flush *err*)
+               (.flush *err*)               
                (print prompt) (flush)
-               (recur (read-line))))
+               ( recur (read-line))                  
+              )
+            )
            (finally (cleanup))))))
 
 (defn -main
