@@ -34,3 +34,5 @@ and shows how to make minor updates for a more recent version of Clojure.
 
 Copyright © 2009-2012 Phil Hagelberg
 Licensed under the same terms as Clojure.
+
+написал что-то
