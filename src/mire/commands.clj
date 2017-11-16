@@ -1,5 +1,5 @@
 (ns mire.commands
-  (:use [mire.rooms :only [rooms room-contains?]]
+  (:use [mire.rooms :only [rooms room-contains? room-contains-weapon? room-contains-armor?]]  ; Artur
         [mire.player])
   (:use [clojure.string :only [join]]))
 
@@ -17,7 +17,14 @@
   (str (:desc @*current-room*)
        "\nExits: " (keys @(:exits @*current-room*)) "\n"
        (join "\n" (map #(str "There is " % " here.\n")
-                           @(:items @*current-room*)))))
+                           @(:items @*current-room*)))
+       (str "Weapons: ")                              ; Artur
+       (join ", " (map #(str %)                       ;
+                      @(:weapons @*current-room*)))   ;
+       (str "\nArmors: ")                             ;
+       (join ", " (map #(str %)                       ;
+                      @(:armors @*current-room*)))    ;
+       ))
 
 (defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
@@ -62,6 +69,32 @@
   (str "You are carrying:\n"
        (join "\n" (seq @*inventory*))))
 
+; Artur
+(defn unwield
+  "Put the weapon down that you're carrying."
+  []
+  (dosync
+   (if (hasweapon?)
+     (do
+         (alter (:weapons @*current-room*) conj @*weapon*) ; выбрасываем оружие
+         (ref-set *weapon* "")
+         (str "You're are unwielded now."))
+     (str "You're not wielded yet."))))
+
+; Artur
+(defn wield
+  "Pick some weapon up."
+  [thing]
+  (dosync
+   (if (room-contains-weapon? @*current-room* thing)
+     (do
+         (if (hasweapon?) (unwield) ())  ; если уже есть оружие - выбрасываем
+         (ref-set *weapon* (keyword thing))
+         (alter (:weapons @*current-room*) disj (keyword thing)) ; забрали оружие из комнаты
+         (str "You picked up the " thing "."))
+     (str "There isn't any " thing " here."))))
+
+
 (defn detect
   "If you have the detector, you can see which room an item is in."
   [item]
@@ -89,17 +122,19 @@
                       (dissoc (ns-publics 'mire.commands)
                               'execute 'commands))))
 
-(defn stats 
+(defn stats
   "Show player statistics"
-  ([] (str "\nHealth: " (apply str (repeat @*health* "♥ ")) 
+  ([] (str "\nHealth: " (apply str (repeat @*health* "♥ "))
     "\nScore: " @*score*
-    "\nStatus: " @*status*))
+    "\nStatus: " @*status*
+    "\nArmor:"  @*armor*    ; Artur
+    "\nWeapon:" @*weapon*)) ; Artur
   ([name]
     (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
     (if-let [player (first (filter #(= (:name %) name)
-                                 (vals @players-stats)))] 
-                            (str "\nName:" (:name player) 
-                              "\nHealth: " (apply str (repeat @(:health player) "♥ ")) 
+                                 (vals @players-stats)))]
+                            (str "\nName:" (:name player)
+                              "\nHealth: " (apply str (repeat @(:health player) "♥ "))
                               "\nStatus: " @(:status player)
                               "\nArmor:"  @(:armor player)
                               "\nWeapon:" @(:weapon player)
@@ -112,18 +147,18 @@
 (defn players
   "Show players in the room"
   []
-    (join "\n" (map stats @(:inhabitants @*current-room*))) 
+    (join "\n" (map stats @(:inhabitants @*current-room*)))
 )
 
 (defn hit
   "Hit someone"
   [name]
-   (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name) 
+   (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
 
     (if-let [player (first (filter #(= (:name %) name)
-                                 (vals @players-stats)))] 
-                           
-                           (do (dosync 
+                                 (vals @players-stats)))]
+
+                           (do (dosync
                                 (ref-set (:health player) (- @(:health player) 1))
                             ) (str ""))
     )
@@ -141,6 +176,8 @@
                "grab" grab
                "discard" discard
                "inventory" inventory
+               "unwield" unwield  ; Artur
+               "wield" wield      ; Artur
                "detect" detect
                "look" look
                "say" say

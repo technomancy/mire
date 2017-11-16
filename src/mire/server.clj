@@ -39,7 +39,7 @@
               *weapon* (ref "")
               *armor*  (ref "")
               ]
-      
+
       (dosync
        (commute (:inhabitants @*current-room*) conj *player-name*  )
        (commute player-streams assoc *player-name* *out*)

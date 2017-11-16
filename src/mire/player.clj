@@ -17,3 +17,13 @@
 (defn carrying?
   [thing]
   (some #{(keyword thing)} @*inventory*))
+
+; Artur
+(defn hasweapon?
+  []
+  (not (= "" @*weapon*)))
+
+; Artur
+(defn hasarmor?
+  []
+  (not (= "" @*armor*)))
