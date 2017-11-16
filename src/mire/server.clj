@@ -54,11 +54,7 @@
                (println (execute input))
                (.flush *err*)               
                (print prompt) (flush)
-<<<<<<< HEAD
                ( recur (read-line))
-=======
-               ( recur (read-line))                  
->>>>>>> cca394336c9ac197405cee0bd8b86b8204f0cdf3
               )
             )
            (finally (cleanup))))))
