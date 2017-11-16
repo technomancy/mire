@@ -129,7 +129,11 @@
     "\nStatus: " @*status*
     "\nArmor:"  @*armor*
     "\nWeapon:" @*weapon*
+<<<<<<< HEAD
     "\nMoney:" @*money*)
+=======
+    "\nMoney:" @*money*)     
+>>>>>>> cca394336c9ac197405cee0bd8b86b8204f0cdf3
   )
   ([name]
     (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
@@ -143,13 +147,18 @@
                             )
     )
     (str ""))
-   )
+  )
 )
 
 (defn players
   "Show players in the room"
   []
+<<<<<<< HEAD
     (join "\n" (map stats @(:inhabitants @*current-room*)))
+=======
+    (join "\n" (map stats @(:inhabitants @*current-room*))) 
+
+>>>>>>> cca394336c9ac197405cee0bd8b86b8204f0cdf3
 )
 
 (defn hit
@@ -158,6 +167,7 @@
    (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
 
     (if-let [player (first (filter #(= (:name %) name)
+<<<<<<< HEAD
                                  (vals @players-stats)))]
                            (do (dosync
                                 (ref-set (:health player) (- @(:health player) 1))
@@ -165,6 +175,15 @@
                                   (do (ref-set (:status player) "Dead")
                                     (binding [*out* (player-streams (:name player))]
                                                 (println "GAME OVER") )
+=======
+                                 (vals @players-stats)))]                
+                           (do (dosync 
+                                (ref-set (:health player) (- @(:health player) 1))
+                                (if (< @(:health player) 1) 
+                                  (do (ref-set (:status player) "Dead")
+                                    (binding [*out* (player-streams (:name player))]
+                                                (println "GAME OVER") )                                     
+>>>>>>> cca394336c9ac197405cee0bd8b86b8204f0cdf3
                                   )
                                 )
 
@@ -174,7 +193,7 @@
     (str ""))
 )
 
-;; Command dataww
+;; Command data
 
 (def commands {"move" move,
                "north" (fn [] (move :north)),
