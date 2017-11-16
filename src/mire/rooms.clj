@@ -11,7 +11,7 @@
             :exits (ref (:exits room))
             :items (ref (or (:items room) #{}))
             :weapons (ref (or (:weapons room) #{})) ; Artur
-            :armors (ref (or (:armors room) #{}))  ; Artur
+            :armors (ref (or (:armors room) #{}))   ; Artur
             :inhabitants (ref #{})}})))
 
 (defn load-rooms
