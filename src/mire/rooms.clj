@@ -10,6 +10,7 @@
             :desc (:desc room)
             :exits (ref (:exits room))
             :items (ref (or (:items room) #{}))
+            :store (ref (or (:store room) #{}))
             :weapons (ref (or (:weapons room) #{})) ; Artur
             :armors (ref (or (:armors room) #{}))   ; Artur
             :inhabitants (ref #{})}})))

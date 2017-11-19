@@ -35,7 +35,7 @@
               *score* (ref 0)
               *health* (ref 5)
               *status* (ref "Alive")
-              *money* (ref 0)
+              *money* (ref 5)
               *weapon* (ref "")
               *armor*  (ref "")
               ]
@@ -52,7 +52,7 @@
       (try (loop [input (read-line)]
              (when (and input  (= @*status* "Alive"))
                (println (execute input))
-               (.flush *err*)               
+               (.flush *err*)
                (print prompt) (flush)
                ( recur (read-line))
               )

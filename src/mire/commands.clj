@@ -149,7 +149,7 @@
 (defn players
   "Show players in the room"
   []
-    (join "\n" (map stats @(:inhabitants @*current-room*))) 
+    (join "\n" (map stats @(:inhabitants @*current-room*)))
 )
 
 (defn hit
@@ -158,13 +158,13 @@
    (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
 
     (if-let [player (first (filter #(= (:name %) name)
-                                 (vals @players-stats)))]                
-                           (do (dosync 
+                                 (vals @players-stats)))]
+                           (do (dosync
                                 (ref-set (:health player) (- @(:health player) 1))
-                                (if (< @(:health player) 1) 
+                                (if (< @(:health player) 1)
                                   (do (ref-set (:status player) "Dead")
                                     (binding [*out* (player-streams (:name player))]
-                                                (println "GAME OVER") )                                     
+                                                (println "GAME OVER") )
                                   )
                                 )
 
@@ -173,6 +173,39 @@
 
     (str ""))
 )
+
+(defn reduce-money
+  "Reduce %number% money"
+  [number]
+  (dosync
+    (ref-set *money* (- @*money* number))))
+
+(defn buy
+  "Buy something."
+  ([]
+   (let [store-things (first (vals @(*current-room* :store)))]
+     (if (= (count store-things) 0)
+       (str "This room isn't store.")
+       (do (println (join "\n" store-things))
+           (str "You have " @*money* " coins.")))))
+  ([thing]
+    (dosync
+      (let [ store-type (first (keys @(*current-room* :store)))
+             store-things (first (vals @(*current-room* :store)))
+             thing-price (get store-things (keyword thing))]
+        (if (= (count store-things) 0)
+         (str "This room isn't store.")
+         (if (contains? store-things (keyword thing))
+          (if (>= @*money* thing-price)
+               (do
+                   (case store-type
+                     :weapon (ref-set *weapon* (keyword thing))
+                     :armor (ref-set *armor* (keyword thing)))
+                   (reduce-money thing-price)
+                   (str "You bought " thing "."))
+               (str "You require " (- (get store-things (keyword thing)) @*money*) " more coins."))
+          (str "Wrong.")))))))
+
 
 ;; Command data
 
@@ -192,7 +225,8 @@
                "stats" stats
                "hit" hit
                "players" players
-               "help" help})
+               "help" help
+               "buy" buy})
 
 ;; Command handling
 
