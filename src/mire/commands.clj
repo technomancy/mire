@@ -34,6 +34,20 @@
   (dosync
     (ref-set (*current-room* :money) (+ @(*current-room* :money) (parse-number number)))))
 
+(defn- add-weapon-room
+  "Add %thing% weapon in room"
+  [thing]
+  (dosync
+    (alter (:weapons @*current-room*) conj (keyword thing))
+      (str "")))
+
+(defn- add-armor-room
+  "Add %thing% armor in room"
+  [thing]
+  (dosync
+    (alter (:armors @*current-room*) conj (keyword thing))
+      (str "")))
+
 ;; Command functions
 
 (defn look
