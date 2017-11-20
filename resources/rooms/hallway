@@ -1,3 +1,3 @@
 {:desc "You are in a long, low-lit hallway that turns to the east."
- :items #{:detector}
- :exits {:north :start :east :promenade} }
+ :exits {:north :start :east :promenade}
+ :items {:money 7 :weapons #{} :armors #{}}}

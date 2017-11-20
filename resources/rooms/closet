@@ -1,6 +1,4 @@
 {:desc "This is the Armor Store."
  :exits {:south :start}
- :items #{:keys}
- :weapons #{:blade :staff :sword}
- :armors #{:divine :magic :heavy}
+ :items {:money 1 :weapons #{} :armors #{}}
  :store {:armor {:divine 1 :magic 2 :heavy 3}}}

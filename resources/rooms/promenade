@@ -1,3 +1,3 @@
 {:desc "The promenade stretches out before you."
  :exits {:west :hallway}
- :items #{:bunny :turtle}}
+ :items {:money 4 :weapons #{:blade} :armors #{:divine :heavy}}}

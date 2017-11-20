@@ -11,8 +11,9 @@
             :exits (ref (:exits room))
             :items (ref (or (:items room) #{}))
             :store (ref (or (:store room) #{}))
-            :weapons (ref (or (:weapons room) #{})) ; Artur
-            :armors (ref (or (:armors room) #{}))   ; Artur
+            :money (ref (:money (or (:items room))))
+            :weapons (ref (or (:weapons (:items room)) #{}))
+            :armors (ref (or (:armors (:items room)) #{}))
             :inhabitants (ref #{})}})))
 
 (defn load-rooms
@@ -33,13 +34,3 @@
 (defn room-contains?
   [room thing]
   (@(:items room) (keyword thing)))
-
-; Artur
-(defn room-contains-weapon?
-  [room thing]
-  (@(:weapons room) (keyword thing)))
-
-; Artur
-(defn room-contains-armor?
-  [room thing]
-  (@(:armors room) (keyword thing)))

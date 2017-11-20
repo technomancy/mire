@@ -1,5 +1,5 @@
 (ns mire.commands
-  (:use [mire.rooms :only [rooms room-contains? room-contains-weapon? room-contains-armor?]]  ; Artur
+  (:use [mire.rooms :only [rooms room-contains?]]
         [mire.player])
   (:use [clojure.string :only [join]]))
 
@@ -9,6 +9,25 @@
   (alter from disj obj)
   (alter to conj obj))
 
+
+(defn parse-number
+  "Reads a number from a string. Returns nil if not a number."
+  [s]
+  (if (re-find #"^-?\d+\.?\d*$" s)
+    (read-string s)))
+
+(defn add-money
+  "Add %number% money"
+  [number]
+  (dosync
+    (ref-set *money* (+ @*money* number))))
+
+(defn reduce-money
+  "Reduce %number% money"
+  [number]
+  (dosync
+    (ref-set *money* (- @*money* number))))
+
 ;; Command functions
 
 (defn look
@@ -16,14 +35,14 @@
   []
   (str (:desc @*current-room*)
        "\nExits: " (keys @(:exits @*current-room*)) "\n"
-       (join "\n" (map #(str "There is " % " here.\n")
-                           @(:items @*current-room*)))
-       (str "Weapons: ")                              ; Artur
-       (join ", " (map #(str %)                       ;
-                      @(:weapons @*current-room*)))   ;
-       (str "\nArmors: ")                             ;
-       (join ", " (map #(str %)                       ;
-                      @(:armors @*current-room*)))    ;
+       (str "Weapons: ")
+       (join ", " (map #(name %)
+                        @(*current-room* :weapons)))
+       (str "\nArmors: ")
+       (join ", " (map #(name %)
+                        @(*current-room* :armors)))
+       (str "\nMoney in this room: ")
+       (str @(*current-room* :money))
        ))
 
 (defn move
@@ -41,58 +60,77 @@
          (look))
        "You can't go that way."))))
 
-(defn grab
-  "Pick something up."
-  [thing]
-  (dosync
-   (if (room-contains? @*current-room* thing)
-     (do (move-between-refs (keyword thing)
-                            (:items @*current-room*)
-                            *inventory*)
-         (str "You picked up the " thing "."))
-     (str "There isn't any " thing " here."))))
-
 (defn discard
   "Put something down that you're carrying."
   [thing]
   (dosync
-   (if (carrying? thing)
-     (do (move-between-refs (keyword thing)
-                            *inventory*
-                            (:items @*current-room*))
-         (str "You dropped the " thing "."))
-     (str "You're not carrying a " thing "."))))
+    (cond (integer? (parse-number thing))
+          (if (>= @*money* (parse-number thing))
+            (do
+              (reduce-money (parse-number thing))
+              (println "You dropped up " (parse-number thing) " money")
+              (ref-set (*current-room* :money) (+ @(*current-room* :money) (parse-number thing)))
+              (str ""))
+            (do
+              (str "You have " @*money* " money")))
+    :else (if (= :money (keyword thing))
+        (do
+          (println "You dropped " @*money* " money")
+          (ref-set (*current-room* :money) @*money*)
+          (reduce-money @*money*)
+          )
+        (cond (= @*weapon* (keyword thing))
+          (do
+            (ref-set *weapon* "")
+            (alter (:weapons @*current-room*) conj (keyword thing))
+            (println "You dropped the " (keyword thing))
+            (str ""))
+        :else (if (= @*armor* (keyword thing))
+          (do
+            (ref-set *armor* "")
+            (alter (:armors @*current-room*) conj (keyword thing))
+            (println "You dropped the " (keyword thing))
+            (str ""))
+          (str "Nothing")))))))
+
+(defn grab
+  "Pick something up."
+  [thing]
+  (dosync
+    (cond (integer? (parse-number thing))
+          (if (>= @(*current-room* :money) (parse-number thing))
+            (do
+              (add-money (parse-number thing))
+              (println "You picked up " (parse-number thing) " money")
+              (ref-set (*current-room* :money) (- @(*current-room* :money) (parse-number thing)))
+              (str ""))
+            (str "In this room " @(*current-room* :money) " money"))
+     :else (if (= :money (keyword thing))
+        (do
+          (add-money @(*current-room* :money))
+          (println "You picked up " @(*current-room* :money) " money")
+          (ref-set (*current-room* :money) 0)
+          (str ""))
+        (cond (not (nil? ((get @(*current-room* :items) :weapons) (keyword thing))))
+          (do
+            (discard (name @*weapon*))
+            (ref-set *weapon* ((get @(*current-room* :items) :weapons) (keyword thing)))
+            (alter (:weapons @*current-room*) disj (keyword thing))
+            (str "You picked up the " (keyword thing)))
+        :else (if (not (nil? ((get @(*current-room* :items) :armors) (keyword thing))))
+          (do
+            (discard (name @*armor*))
+            (ref-set *armor* ((get @(*current-room* :items) :armors) (keyword thing)))
+            (alter (:armors @*current-room*) disj (keyword thing))
+            (str "You picked up the " (keyword thing)))
+          (str "Nothing")))))))
+
 
 (defn inventory
   "See what you've got."
   []
   (str "You are carrying:\n"
        (join "\n" (seq @*inventory*))))
-
-; Artur
-(defn unwield
-  "Put the weapon down that you're carrying."
-  []
-  (dosync
-   (if (hasweapon?)
-     (do
-         (alter (:weapons @*current-room*) conj @*weapon*) ; выбрасываем оружие
-         (ref-set *weapon* "")
-         (str "You're are unwielded now."))
-     (str "You're not wielded yet."))))
-
-; Artur
-(defn wield
-  "Pick some weapon up."
-  [thing]
-  (dosync
-   (if (room-contains-weapon? @*current-room* thing)
-     (do
-         (if (hasweapon?) (unwield) ())  ; если уже есть оружие - выбрасываем
-         (ref-set *weapon* (keyword thing))
-         (alter (:weapons @*current-room*) disj (keyword thing)) ; забрали оружие из комнаты
-         (str "You picked up the " thing "."))
-     (str "There isn't any " thing " here."))))
 
 
 (defn detect
@@ -174,12 +212,6 @@
     (str ""))
 )
 
-(defn reduce-money
-  "Reduce %number% money"
-  [number]
-  (dosync
-    (ref-set *money* (- @*money* number))))
-
 (defn buy
   "Buy something."
   ([]
@@ -199,8 +231,12 @@
           (if (>= @*money* thing-price)
                (do
                    (case store-type
-                     :weapon (ref-set *weapon* (keyword thing))
-                     :armor (ref-set *armor* (keyword thing)))
+                     :weapon (do
+                               (discard (name @*weapon*))
+                               (ref-set *weapon* (keyword thing)))
+                     :armor (do
+                              (discard (name @*armor*))
+                              (ref-set *armor* (keyword thing))))
                    (reduce-money thing-price)
                    (str "You bought " thing "."))
                (str "You require " (- (get store-things (keyword thing)) @*money*) " more coins."))
@@ -214,11 +250,9 @@
                "south" (fn [] (move :south)),
                "east" (fn [] (move :east)),
                "west" (fn [] (move :west)),
-               "grab" grab
                "discard" discard
+               "grab" grab
                "inventory" inventory
-               "unwield" unwield  ; Artur
-               "wield" wield      ; Artur
                "detect" detect
                "look" look
                "say" say
