@@ -10,23 +10,29 @@
   (alter to conj obj))
 
 
-(defn parse-number
+(defn- parse-number
   "Reads a number from a string. Returns nil if not a number."
   [s]
   (if (re-find #"^-?\d+\.?\d*$" s)
     (read-string s)))
 
-(defn add-money
+(defn- add-money
   "Add %number% money"
   [number]
   (dosync
     (ref-set *money* (+ @*money* number))))
 
-(defn reduce-money
+(defn- reduce-money
   "Reduce %number% money"
   [number]
   (dosync
     (ref-set *money* (- @*money* number))))
+
+(defn- add-money-room
+  "Add %number% money in room"
+  [number]
+  (dosync
+    (ref-set (*current-room* :money) (+ @(*current-room* :money) (parse-number number)))))
 
 ;; Command functions
 
@@ -68,7 +74,7 @@
           (if (>= @*money* (parse-number thing))
             (do
               (reduce-money (parse-number thing))
-              (println "You dropped up " (parse-number thing) " money")
+              (println "You dropped " (parse-number thing) " money")
               (ref-set (*current-room* :money) (+ @(*current-room* :money) (parse-number thing)))
               (str ""))
             (do
