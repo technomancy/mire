@@ -32,7 +32,7 @@
   "Add %number% money in room"
   [number]
   (dosync
-    (ref-set (*current-room* :money) (+ @(*current-room* :money) (parse-number number)))))
+    (ref-set (*current-room* :money) (+ @(*current-room* :money) number))))
 
 (defn- add-weapon-room
   "Add %thing% weapon in room"
@@ -47,6 +47,26 @@
   (dosync
     (alter (:armors @*current-room*) conj (keyword thing))
       (str "")))
+
+(def hit_list
+      {
+        :_ 1
+        :_divine 0
+        :_magic 0
+        :_heavy 0
+        :blade_ 2
+        :blade_divine 1
+        :blade_magic 2
+        :blade_heavy 0
+        :staff_ 2
+        :staff_divine 2
+        :staff_magic 0
+        :staff_heavy 1
+        :sword_ 2
+        :sword_divine 0
+        :sword_magic 1
+        :sword_heavy 2
+      })
 
 ;; Command functions
 
@@ -101,13 +121,13 @@
           )
         (cond (= @*weapon* (keyword thing))
           (do
-            (ref-set *weapon* "")
+            (ref-set *weapon* " ")
             (alter (:weapons @*current-room*) conj (keyword thing))
             (println "You dropped the " (keyword thing))
             (str ""))
         :else (if (= @*armor* (keyword thing))
           (do
-            (ref-set *armor* "")
+            (ref-set *armor* " ")
             (alter (:armors @*current-room*) conj (keyword thing))
             (println "You dropped the " (keyword thing))
             (str ""))
@@ -178,7 +198,7 @@
   []
   (join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
                       (dissoc (ns-publics 'mire.commands)
-                              'execute 'commands))))
+                              'execute 'commands 'hit_list))))
 
 (defn stats
   "Show player statistics"
@@ -198,6 +218,7 @@
                               "\nStatus: " @(:status player)
                               "\nArmor:"  @(:armor player)
                               "\nWeapon:" @(:weapon player)
+                              "\nMoney:" @(:money player)
                             )
     )
     (str ""))
@@ -217,19 +238,36 @@
 
     (if-let [player (first (filter #(= (:name %) name)
                                  (vals @players-stats)))]
+                            (if (= @(:status player) "Alive")
                            (do (dosync
-                                (ref-set (:health player) (- @(:health player) 1))
+                             
+                                (ref-set (:health player) (- @(:health player) (get hit_list (keyword (str (subs (str @*weapon*) 1) "_" (subs (str @(:armor player)) 1))))))
+                                (println (str "Power of hit: " (get hit_list (keyword (str (subs (str @*weapon*) 1) "_" (subs (str @(:armor player)) 1))))))
                                 (if (< @(:health player) 1)
-                                  (do (ref-set (:status player) "Dead")
+                                  (do 
+                                    (ref-set (:status player) "Dead") 
+                                   (println "He is dead")
+                                    (add-money-room  @(:money player))
+                                     (add-armor-room (subs (str @(:armor player)) 1))
+                                      (add-weapon-room (subs (str @(:weapon player)) 1))
+                                                                
+                                     
                                     (binding [*out* (player-streams (:name player))]
-                                                (println "GAME OVER") )
+                                                (println "GAME OVER"))
+                                    
+                                   
                                   )
+                                  (binding [*out* (player-streams (:name player))]
+                                                (println (str "Your health: " @(:health player)))
+                                                (print prompt) (flush) 
+                                  ) 
                                 )
 
                             ) (str ""))
+                              (str "He is already dead "))
     )
 
-    (str ""))
+    (str "He isn't here"))
 )
 
 (defn buy

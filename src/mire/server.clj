@@ -33,17 +33,17 @@
               *current-room* (ref (@rooms :start))
               *inventory* (ref #{})
               *score* (ref 0)
-              *health* (ref 5)
+              *health* (ref 9)
               *status* (ref "Alive")
               *money* (ref 5)
-              *weapon* (ref "")
-              *armor*  (ref "")
+              *weapon* (ref " ")
+              *armor*  (ref " ")
               ]
 
       (dosync
        (commute (:inhabitants @*current-room*) conj *player-name*  )
        (commute player-streams assoc *player-name* *out*)
-       (commute players-stats  conj {(keyword *player-name*){:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon*}})
+       (commute players-stats  conj {(keyword *player-name*){:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon* :money *money*}})
        ; (conj  players-stats   {:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon*})
        )
 
