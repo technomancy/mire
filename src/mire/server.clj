@@ -22,42 +22,60 @@
     name))
 
 (defn- mire-handle-client [in out]
-  (binding [*in* (reader in)
-            *out* (writer out)
-            *err* (writer System/err)]
+	(binding [*in* (reader in) *out* (writer out) *err* (writer System/err)]
+	    ;; We have to nest this in another binding call instead of using
+	    ;; the one above so *in* and *out* will be bound to the socket
+	    (print "\nWhat is your name? ") (flush)
+	    (binding [*player-name* (get-unique-player-name (read-line))
+	              *current-room* (ref (@rooms :start))
+	              *inventory* (ref #{})
+	              *score* (ref 0)
+	              *health* (ref 5)
+	              *status* (ref "Alive")
+	              *money* (ref 5)
+	              *weapon* (ref "")
+	              *armor*  (ref "")
+	              *last-message* (ref (System/currentTimeMillis))]
 
-    ;; We have to nest this in another binding call instead of using
-    ;; the one above so *in* and *out* will be bound to the socket
-    (print "\nWhat is your name? ") (flush)
-    (binding [*player-name* (get-unique-player-name (read-line))
-              *current-room* (ref (@rooms :start))
-              *inventory* (ref #{})
-              *score* (ref 0)
-              *health* (ref 9)
-              *status* (ref "Alive")
-              *money* (ref 5)
-              *weapon* (ref " ")
-              *armor*  (ref " ")
-              ]
+		(dosync
+			(commute (:inhabitants @*current-room*) conj *player-name*)
+			(commute player-streams assoc *player-name* *out*)
+			(commute players-stats conj {
+				(keyword *player-name*) { 
+					:name *player-name* 
+					:health *health* 
+					:status *status* 
+					:armor *armor* 
+					:weapon *weapon*
+					}
+				})
+		)
 
-      (dosync
-       (commute (:inhabitants @*current-room*) conj *player-name*  )
-       (commute player-streams assoc *player-name* *out*)
-       (commute players-stats  conj {(keyword *player-name*){:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon* :money *money*}})
-       ; (conj  players-stats   {:name *player-name* :health *health* :status *status* :armor *armor* :weapon *weapon*})
-       )
+	  	(println (look)) (print prompt) (flush)
 
-      (println (look)) (print prompt) (flush)
+		(try 
+			(loop [input (read-line)]
+		    	(when (and input  (= @*status* "Alive"))
+			     	(cond (> (- (System/currentTimeMillis) 1000) @*last-message*)
+			     		(do
+			     			(println (execute input))
+			       	    	(.flush *err*)
+			       		)
+			       		:else 
+			       			(println "You are so fast! Maybe, you are a bot?")
+			       	)
 
-      (try (loop [input (read-line)]
-             (when (and input  (= @*status* "Alive"))
-               (println (execute input))
-               (.flush *err*)
-               (print prompt) (flush)
-               ( recur (read-line))
-              )
-            )
-           (finally (cleanup))))))
+			     	(dosync (ref-set *last-message* (System/currentTimeMillis)))	
+			       	(print prompt) (flush)
+			     	(recur (read-line))
+			    )
+			)
+
+			(finally (cleanup)))
+		)
+	)
+)
+
 
 (defn -main
   ([port dir]
