@@ -1,4 +1,4 @@
-{:desc "This is the Armor Store."
+{:desc "This is the Armor Store. And yes, it's closet."
  :exits {:south :start}
  :items {:money 1 :weapons #{} :armors #{}}
  :store {:armor {:divine 1 :magic 2 :heavy 3}}}

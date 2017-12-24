@@ -1,5 +1,5 @@
 {:desc "This is the Weapon Store."
- :exits {:north :closet :south :hallway}
+ :exits {:north :hallway :south :restroom :east :closet}
  :items {:money 2 :weapons #{:blade :staff :sword} :armors #{:divine :magic :heavy}}
  :store {:weapon {:blade 1 :staff 2 :sword 3}}}
 

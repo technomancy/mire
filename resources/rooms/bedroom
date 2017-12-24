@@ -1,0 +1,3 @@
+{:desc "Maybe you wanna watch TV?"
+ :exits {:north :restroom :south :kitchen}
+ :items {:money 7 :weapons #{} :armors #{}}}

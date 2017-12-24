@@ -1,0 +1,3 @@
+{:desc "You are in the our cute little kitchen."
+ :exits {:north :bedroom :south :promenade :west :kitchen}
+ :items {:money 7 :weapons #{} :armors #{}}}
