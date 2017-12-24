@@ -33,8 +33,8 @@
 	              *health* (ref 5)
 	              *status* (ref "Alive")
 	              *money* (ref 5)
-	              *weapon* (ref "")
-	              *armor*  (ref "")
+	              *weapon* (ref " ")
+	              *armor*  (ref " ")
 	              *last-message* (ref (System/currentTimeMillis))]
 
 		(dosync
@@ -47,6 +47,7 @@
 					:status *status* 
 					:armor *armor* 
 					:weapon *weapon*
+                                        :money *money*
 					}
 				})
 		)
