@@ -25,7 +25,7 @@
 	(binding [*in* (reader in) *out* (writer out) *err* (writer System/err)]
 	    ;; We have to nest this in another binding call instead of using
 	    ;; the one above so *in* and *out* will be bound to the socket
-	    (print "\nWhat is your name? ") (flush)
+	    (print "What is your name?\n") (flush)
 	    (binding [*player-name* (get-unique-player-name (read-line))
 	              *current-room* (ref (@rooms :start))
 	              *inventory* (ref #{})

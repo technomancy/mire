@@ -11,7 +11,7 @@
 (def ^:dynamic *weapon*)
 (def ^:dynamic *last-message*)
 
-(def prompt "> ")
+(def prompt ">\n")
 (def player-streams (ref {}))
 (def players-stats (ref {}))
 
