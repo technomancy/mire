@@ -9,6 +9,65 @@
   (alter from disj obj)
   (alter to conj obj))
 
+
+(defn- parse-number
+  "Reads a number from a string. Returns nil if not a number."
+  [s]
+  (if (re-find #"^-?\d+\.?\d*$" s)
+    (read-string s)))
+
+(defn- add-money
+  "Add %number% money"
+  [number]
+  (dosync
+    (ref-set *money* (+ @*money* number))))
+
+(defn- reduce-money
+  "Reduce %number% money"
+  [number]
+  (dosync
+    (ref-set *money* (- @*money* number))))
+
+(defn- add-money-room
+  "Add %number% money in room"
+  [number]
+  (dosync
+    (ref-set (*current-room* :money) (+ @(*current-room* :money) number))))
+
+(defn- add-weapon-room
+  "Add %thing% weapon in room"
+  [thing]
+  (dosync
+    (alter (:weapons @*current-room*) conj (keyword thing))
+      (str "")))
+
+(defn- add-armor-room
+  "Add %thing% armor in room"
+  [thing]
+  (dosync
+    (alter (:armors @*current-room*) conj (keyword thing))
+      (str "")))
+
+(def hit_list
+      {
+        :_ 1
+        :_divine 0
+        :_magic 0
+        :_heavy 0
+        :blade_ 2
+        :blade_divine 1
+        :blade_magic 2
+        :blade_heavy 0
+        :staff_ 2
+        :staff_divine 2
+        :staff_magic 0
+        :staff_heavy 1
+        :sword_ 2
+        :sword_divine 0
+        :sword_magic 1
+        :sword_heavy 2
+      })
+
 ;; Command functions
 
 (defn look
@@ -16,8 +75,15 @@
   []
   (str (:desc @*current-room*)
        "\nExits: " (keys @(:exits @*current-room*)) "\n"
-       (join "\n" (map #(str "There is " % " here.\n")
-                           @(:items @*current-room*)))))
+       (str "Weapons: ")
+       (join ", " (map #(name %)
+                        @(*current-room* :weapons)))
+       (str "\nArmors: ")
+       (join ", " (map #(name %)
+                        @(*current-room* :armors)))
+       (str "\nMoney in this room: ")
+       (str @(*current-room* :money))
+       ))
 
 (defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
@@ -34,33 +100,78 @@
          (look))
        "You can't go that way."))))
 
-(defn grab
-  "Pick something up."
-  [thing]
-  (dosync
-   (if (room-contains? @*current-room* thing)
-     (do (move-between-refs (keyword thing)
-                            (:items @*current-room*)
-                            *inventory*)
-         (str "You picked up the " thing "."))
-     (str "There isn't any " thing " here."))))
-
 (defn discard
   "Put something down that you're carrying."
   [thing]
   (dosync
-   (if (carrying? thing)
-     (do (move-between-refs (keyword thing)
-                            *inventory*
-                            (:items @*current-room*))
-         (str "You dropped the " thing "."))
-     (str "You're not carrying a " thing "."))))
+    (cond (integer? (parse-number thing))
+          (if (>= @*money* (parse-number thing))
+            (do
+              (reduce-money (parse-number thing))
+              (println "You dropped " (parse-number thing) " money")
+              (ref-set (*current-room* :money) (+ @(*current-room* :money) (parse-number thing)))
+              (str ""))
+            (do
+              (str "You have " @*money* " money")))
+    :else (if (= :money (keyword thing))
+        (do
+          (println "You dropped " @*money* " money")
+          (ref-set (*current-room* :money) @*money*)
+          (reduce-money @*money*)
+          )
+        (cond (= @*weapon* (keyword thing))
+          (do
+            (ref-set *weapon* " ")
+            (alter (:weapons @*current-room*) conj (keyword thing))
+            (println "You dropped the " (keyword thing))
+            (str ""))
+        :else (if (= @*armor* (keyword thing))
+          (do
+            (ref-set *armor* " ")
+            (alter (:armors @*current-room*) conj (keyword thing))
+            (println "You dropped the " (keyword thing))
+            (str ""))
+          (str "Nothing")))))))
+
+(defn grab
+  "Pick something up."
+  [thing]
+  (dosync
+    (cond (integer? (parse-number thing))
+          (if (>= @(*current-room* :money) (parse-number thing))
+            (do
+              (add-money (parse-number thing))
+              (println "You picked up " (parse-number thing) " money")
+              (ref-set (*current-room* :money) (- @(*current-room* :money) (parse-number thing)))
+              (str ""))
+            (str "In this room " @(*current-room* :money) " money"))
+     :else (if (= :money (keyword thing))
+        (do
+          (add-money @(*current-room* :money))
+          (println "You picked up " @(*current-room* :money) " money")
+          (ref-set (*current-room* :money) 0)
+          (str ""))
+        (cond (not (nil? ((get @(*current-room* :items) :weapons) (keyword thing))))
+          (do
+            (discard (name @*weapon*))
+            (ref-set *weapon* ((get @(*current-room* :items) :weapons) (keyword thing)))
+            (alter (:weapons @*current-room*) disj (keyword thing))
+            (str "You picked up the " (keyword thing)))
+        :else (if (not (nil? ((get @(*current-room* :items) :armors) (keyword thing))))
+          (do
+            (discard (name @*armor*))
+            (ref-set *armor* ((get @(*current-room* :items) :armors) (keyword thing)))
+            (alter (:armors @*current-room*) disj (keyword thing))
+            (str "You picked up the " (keyword thing)))
+          (str "Nothing")))))))
+
 
 (defn inventory
   "See what you've got."
   []
   (str "You are carrying:\n"
        (join "\n" (seq @*inventory*))))
+
 
 (defn detect
   "If you have the detector, you can see which room an item is in."
@@ -87,7 +198,108 @@
   []
   (join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
                       (dissoc (ns-publics 'mire.commands)
-                              'execute 'commands))))
+                              'execute 'commands 'hit_list))))
+
+(defn stats
+  "Show player statistics"
+  ([] (str "\nHealth: " (apply str (repeat @*health* "♥ "))
+    "\nScore: " @*score*
+    "\nStatus: " @*status*
+    "\nArmor:"  @*armor*
+    "\nWeapon:" @*weapon*
+    "\nMoney:" @*money*)
+  )
+  ([name]
+    (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
+    (if-let [player (first (filter #(= (:name %) name)
+                                 (vals @players-stats)))]
+                            (str "\nName:" (:name player)
+                              "\nHealth: " (apply str (repeat @(:health player) "♥ "))
+                              "\nStatus: " @(:status player)
+                              "\nArmor:"  @(:armor player)
+                              "\nWeapon:" @(:weapon player)
+                              "\nMoney:" @(:money player)
+                            )
+    )
+    (str ""))
+  )
+)
+
+(defn players
+  "Show players in the room"
+  []
+    (join "\n" (map stats @(:inhabitants @*current-room*)))
+)
+
+(defn hit
+  "Hit someone"
+  [name]
+   (if (contains? (disj @(:inhabitants @*current-room*) *player-name*) name)
+
+    (if-let [player (first (filter #(= (:name %) name)
+                                 (vals @players-stats)))]
+                            (if (= @(:status player) "Alive")
+                           (do (dosync
+                             
+                                (ref-set (:health player) (- @(:health player) (get hit_list (keyword (str (subs (str @*weapon*) 1) "_" (subs (str @(:armor player)) 1))))))
+                                (println (str "Power of hit: " (get hit_list (keyword (str (subs (str @*weapon*) 1) "_" (subs (str @(:armor player)) 1))))))
+                                (if (< @(:health player) 1)
+                                  (do 
+                                    (ref-set (:status player) "Dead") 
+                                   (println "He is dead")
+                                    (add-money-room  @(:money player))
+                                     (add-armor-room (subs (str @(:armor player)) 1))
+                                      (add-weapon-room (subs (str @(:weapon player)) 1))
+                                                                
+                                     
+                                    (binding [*out* (player-streams (:name player))]
+                                                (println "GAME OVER"))
+                                    
+                                   
+                                  )
+                                  (binding [*out* (player-streams (:name player))]
+                                                (println (str "Your health: " @(:health player)))
+                                                (print prompt) (flush) 
+                                  ) 
+                                )
+
+                            ) (str ""))
+                              (str "He is already dead "))
+    )
+
+    (str "He isn't here"))
+)
+
+(defn buy
+  "Buy something."
+  ([]
+   (let [store-things (first (vals @(*current-room* :store)))]
+     (if (= (count store-things) 0)
+       (str "This room isn't store.")
+       (do (println (join "\n" store-things))
+           (str "You have " @*money* " coins.")))))
+  ([thing]
+    (dosync
+      (let [ store-type (first (keys @(*current-room* :store)))
+             store-things (first (vals @(*current-room* :store)))
+             thing-price (get store-things (keyword thing))]
+        (if (= (count store-things) 0)
+         (str "This room isn't store.")
+         (if (contains? store-things (keyword thing))
+          (if (>= @*money* thing-price)
+               (do
+                   (case store-type
+                     :weapon (do
+                               (discard (name @*weapon*))
+                               (ref-set *weapon* (keyword thing)))
+                     :armor (do
+                              (discard (name @*armor*))
+                              (ref-set *armor* (keyword thing))))
+                   (reduce-money thing-price)
+                   (str "You bought " thing "."))
+               (str "You require " (- (get store-things (keyword thing)) @*money*) " more coins."))
+          (str "Wrong.")))))))
+
 
 ;; Command data
 
@@ -96,13 +308,17 @@
                "south" (fn [] (move :south)),
                "east" (fn [] (move :east)),
                "west" (fn [] (move :west)),
-               "grab" grab
                "discard" discard
+               "grab" grab
                "inventory" inventory
                "detect" detect
                "look" look
                "say" say
-               "help" help})
+               "stats" stats
+               "hit" hit
+               "players" players
+               "help" help
+               "buy" buy})
 
 ;; Command handling
 

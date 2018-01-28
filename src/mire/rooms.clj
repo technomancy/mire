@@ -10,6 +10,10 @@
             :desc (:desc room)
             :exits (ref (:exits room))
             :items (ref (or (:items room) #{}))
+            :store (ref (or (:store room) #{}))
+            :money (ref (:money (or (:items room))))
+            :weapons (ref (or (:weapons (:items room)) #{}))
+            :armors (ref (or (:armors (:items room)) #{}))
             :inhabitants (ref #{})}})))
 
 (defn load-rooms
