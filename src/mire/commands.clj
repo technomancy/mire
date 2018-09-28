@@ -1,7 +1,7 @@
 (ns mire.commands
-  (:use [mire.rooms :only [rooms room-contains?]]
-        [mire.player])
-  (:use [clojure.string :only [join]]))
+  (:require [clojure.string :as str]
+            [mire.rooms :as rooms]
+            [mire.player :as player]))
 
 (defn- move-between-refs
   "Move one instance of obj between from and to. Must call in a transaction."
@@ -14,23 +14,23 @@
 (defn look
   "Get a description of the surrounding environs and its contents."
   []
-  (str (:desc @*current-room*)
-       "\nExits: " (keys @(:exits @*current-room*)) "\n"
-       (join "\n" (map #(str "There is " % " here.\n")
-                           @(:items @*current-room*)))))
+  (str (:desc @player/*current-room*)
+       "\nExits: " (keys @(:exits @player/*current-room*)) "\n"
+       (str/join "\n" (map #(str "There is " % " here.\n")
+                           @(:items @player/*current-room*)))))
 
 (defn move
   "\"♬ We gotta get out of this place... ♪\" Give a direction."
   [direction]
   (dosync
-   (let [target-name ((:exits @*current-room*) (keyword direction))
-         target (@rooms target-name)]
+   (let [target-name ((:exits @player/*current-room*) (keyword direction))
+         target (@rooms/rooms target-name)]
      (if target
        (do
-         (move-between-refs *player-name*
-                            (:inhabitants @*current-room*)
+         (move-between-refs player/*name*
+                            (:inhabitants @player/*current-room*)
                             (:inhabitants target))
-         (ref-set *current-room* target)
+         (ref-set player/*current-room* target)
          (look))
        "You can't go that way."))))
 
@@ -38,10 +38,10 @@
   "Pick something up."
   [thing]
   (dosync
-   (if (room-contains? @*current-room* thing)
+   (if (rooms/room-contains? @player/*current-room* thing)
      (do (move-between-refs (keyword thing)
-                            (:items @*current-room*)
-                            *inventory*)
+                            (:items @player/*current-room*)
+                            player/*inventory*)
          (str "You picked up the " thing "."))
      (str "There isn't any " thing " here."))))
 
@@ -49,10 +49,10 @@
   "Put something down that you're carrying."
   [thing]
   (dosync
-   (if (carrying? thing)
+   (if (player/carrying? thing)
      (do (move-between-refs (keyword thing)
-                            *inventory*
-                            (:items @*current-room*))
+                            player/*inventory*
+                            (:items @player/*current-room*))
          (str "You dropped the " thing "."))
      (str "You're not carrying a " thing "."))))
 
@@ -60,14 +60,14 @@
   "See what you've got."
   []
   (str "You are carrying:\n"
-       (join "\n" (seq @*inventory*))))
+       (str/join "\n" (seq @player/*inventory*))))
 
 (defn detect
   "If you have the detector, you can see which room an item is in."
   [item]
-  (if (@*inventory* :detector)
+  (if (@player/*inventory* :detector)
     (if-let [room (first (filter #((:items %) (keyword item))
-                                 (vals @rooms)))]
+                                 (vals @rooms/rooms)))]
       (str item " is in " (:name room))
       (str item " is not in any room."))
     "You need to be carrying the detector for that."))
@@ -75,17 +75,18 @@
 (defn say
   "Say something out loud so everyone in the room can hear."
   [& words]
-  (let [message (join " " words)]
-    (doseq [inhabitant (disj @(:inhabitants @*current-room*) *player-name*)]
-      (binding [*out* (player-streams inhabitant)]
+  (let [message (str/join " " words)]
+    (doseq [inhabitant (disj @(:inhabitants @player/*current-room*)
+                             player/*name*)]
+      (binding [*out* (player/streams inhabitant)]
         (println message)
-        (println prompt)))
+        (println player/prompt)))
     (str "You said " message)))
 
 (defn help
   "Show available commands and what they do."
   []
-  (join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
+  (str/join "\n" (map #(str (key %) ": " (:doc (meta (val %))))
                       (dissoc (ns-publics 'mire.commands)
                               'execute 'commands))))
 

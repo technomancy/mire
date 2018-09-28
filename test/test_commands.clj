@@ -1,26 +1,26 @@
 (ns test-commands
-  (:use [mire.player]
-        [mire.commands]
-        [mire.rooms :only [add-rooms rooms]]
-        [clojure.test]
-        [clojure.java.io :only [writer]]))
+  (:require [clojure.test :refer :all]
+            [clojure.java.io :as io]
+            [mire.commands :refer :all]
+            [mire.player :as player]
+            [mire.rooms :as rooms]))
 
-(add-rooms "resources/rooms/")
+(rooms/add-rooms "resources/rooms/")
 
 (defmacro def-command-test [name & body]
   `(deftest ~name
-     (binding [*current-room* (ref (:start @rooms))
-               *inventory* (ref #{})
-               *player-name* "Tester"]
+     (binding [player/*current-room* (ref (:start @rooms/rooms))
+               player/*inventory* (ref #{})
+               player/*name* "Tester"]
        ~@body)))
 
 (def-command-test test-execute
   ;; Silence the error!
-  (binding [*err* (writer "/dev/null")]
+  (binding [*err* (io/writer "/dev/null")]
     (is (= "You can't do that!"
            (execute "discard a can of beans into the fridge"))))
   (is (re-find #"closet" (execute "north")))
-  (is (= @*current-room* (:closet @rooms))))
+  (is (= @player/*current-room* (:closet @rooms/rooms))))
 
 (def-command-test test-move
   (is (re-find #"hallway" (execute "south")))
@@ -28,24 +28,24 @@
   (is (re-find #"can't go that way" (move "south"))))
 
 (def-command-test test-look
-  (binding [*current-room* (ref (:closet @rooms))]
+  (binding [player/*current-room* (ref (:closet @rooms/rooms))]
     (doseq [look-for [#"closet" #"keys" #"south"]]
     (is (re-find look-for (look))))))
 
 (def-command-test test-inventory
-  (binding [*inventory* (ref [:keys :bunny])]
+  (binding [player/*inventory* (ref [:keys :bunny])]
     (is (re-find #"bunny" (inventory)))
     (is (re-find #"keys" (inventory)))))
 
 (def-command-test test-grab
-  (binding [*current-room* (ref (:closet @rooms))]
+  (binding [player/*current-room* (ref (:closet @rooms/rooms))]
     (is (not (= "There isn't any keys here"
                 (grab "keys"))))
-    (is (carrying? :keys))
-    (is (empty? @(@*current-room* :items)))))
+    (is (player/carrying? :keys))
+    (is (empty? @(@player/*current-room* :items)))))
 
 (def-command-test test-discard
-  (binding [*inventory* (ref #{:bunny})]
+  (binding [player/*inventory* (ref #{:bunny})]
     (is (re-find #"dropped" (discard "bunny")))
-    (is (not (carrying? "bunny")))
-    (is (mire.rooms/room-contains? @*current-room* "bunny"))))
+    (is (not (player/carrying? "bunny")))
+    (is (rooms/room-contains? @player/*current-room* "bunny"))))

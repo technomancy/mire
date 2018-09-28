@@ -1,55 +1,56 @@
 (ns mire.server
-  (:use [mire.player]
-        [mire.commands :only [discard look execute]]
-        [mire.rooms :only [add-rooms rooms]])
-  (:use [clojure.java.io :only [reader writer]]
-        [server.socket :only [create-server]]))
+  (:require [clojure.java.io :as io]
+            [server.socket :as socket]
+            [mire.player :as player]
+            [mire.commands :as commands]
+            [mire.player :as player]
+            [mire.rooms :as rooms]))
 
 (defn- cleanup []
   "Drop all inventory and remove player from room and player list."
   (dosync
-   (doseq [item @*inventory*]
-     (discard item))
-   (commute player-streams dissoc *player-name*)
-   (commute (:inhabitants @*current-room*)
-            disj *player-name*)))
+   (doseq [item @player/*inventory*]
+     (commands/discard item))
+   (commute player/streams dissoc player/*name*)
+   (commute (:inhabitants @player/*current-room*)
+            disj player/player/*name*)))
 
 (defn- get-unique-player-name [name]
-  (if (@player-streams name)
+  (if (@player/streams name)
     (do (print "That name is in use; try again: ")
         (flush)
         (recur (read-line)))
     name))
 
 (defn- mire-handle-client [in out]
-  (binding [*in* (reader in)
-            *out* (writer out)
-            *err* (writer System/err)]
+  (binding [*in* (io/reader in)
+            *out* (io/writer out)
+            *err* (io/writer System/err)]
 
     ;; We have to nest this in another binding call instead of using
     ;; the one above so *in* and *out* will be bound to the socket
     (print "\nWhat is your name? ") (flush)
-    (binding [*player-name* (get-unique-player-name (read-line))
-              *current-room* (ref (@rooms :start))
-              *inventory* (ref #{})]
+    (binding [player/*name* (get-unique-player-name (read-line))
+              player/*current-room* (ref (@rooms/rooms :start))
+              player/*inventory* (ref #{})]
       (dosync
-       (commute (:inhabitants @*current-room*) conj *player-name*)
-       (commute player-streams assoc *player-name* *out*))
+       (commute (:inhabitants @player/*current-room*) conj player/*name*)
+       (commute player/streams assoc player/*name* *out*))
 
-      (println (look)) (print prompt) (flush)
+      (println (commands/look)) (print player/prompt) (flush)
 
       (try (loop [input (read-line)]
              (when input
-               (println (execute input))
+               (println (commands/execute input))
                (.flush *err*)
-               (print prompt) (flush)
+               (print player/prompt) (flush)
                (recur (read-line))))
            (finally (cleanup))))))
 
 (defn -main
   ([port dir]
-     (add-rooms dir)
-     (defonce server (create-server (Integer. port) mire-handle-client))
+     (rooms/add-rooms dir)
+     (defonce server (socket/create-server (Integer. port) mire-handle-client))
      (println "Launching Mire server on port" port))
   ([port] (-main port "resources/rooms"))
   ([] (-main 3333)))

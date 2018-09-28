@@ -2,11 +2,10 @@
 
 (def ^:dynamic *current-room*)
 (def ^:dynamic *inventory*)
-(def ^:dynamic *player-name*)
+(def ^:dynamic *name*)
 
 (def prompt "> ")
-(def player-streams (ref {}))
+(def streams (ref {}))
 
-(defn carrying?
-  [thing]
+(defn carrying? [thing]
   (some #{(keyword thing)} @*inventory*))
