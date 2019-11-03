@@ -3,7 +3,6 @@
             [server.socket :as socket]
             [mire.player :as player]
             [mire.commands :as commands]
-            [mire.player :as player]
             [mire.rooms :as rooms]))
 
 (defn- cleanup []
@@ -13,7 +12,7 @@
      (commands/discard item))
    (commute player/streams dissoc player/*name*)
    (commute (:inhabitants @player/*current-room*)
-            disj player/player/*name*)))
+            disj player/*name*)))
 
 (defn- get-unique-player-name [name]
   (if (@player/streams name)
