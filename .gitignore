@@ -2,3 +2,5 @@ mire-*.jar
 lib/
 classes/
 target/
+/.lein-repl-history
+/.nrepl-port
